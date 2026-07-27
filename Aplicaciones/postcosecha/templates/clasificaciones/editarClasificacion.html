@@ -1,0 +1,55 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Clasificación {{ clasificacionEditar.codigo_clasificacion }}{% endblock %}
+{% block contenido %}
+<div class="mb-4">
+    <span class="eyebrow">Postcosecha · Clasificación</span>
+    <h1 class="page-title">{{ clasificacionEditar.codigo_clasificacion }}</h1>
+</div>
+
+<form class="panel mb-4" action="{% url 'procesarEdicionClasificacion' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="codigo_clasificacion" value="{{ clasificacionEditar.codigo_clasificacion }}">
+    <div class="panel-body">
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Fecha</label><div class="detail-row fw-semibold"><i class="bi bi-calendar-check me-2 text-success"></i>{{ clasificacionEditar.fecha_clasificacion|date:'d/m/Y' }}</div><div class="help-text mt-1">La fecha registrada no puede modificarse.</div></div>
+            <div class="col-md-8"><label class="form-label">Observación</label><textarea class="form-control" name="observacion">{{ clasificacionEditar.observacion }}</textarea></div>
+        </div>
+    </div>
+    <div class="panel-head justify-content-end"><a href="{% url 'inicioClasificacion' %}" class="btn btn-light">Volver</a><button class="btn btn-primary">Guardar cambios</button></div>
+</form>
+
+<div class="panel">
+    <div class="panel-head"><div><div class="section-title">Resultados de la jornada</div><div class="help-text">Los tallos declarados corresponden a la recepción; los contabilizados, faltantes y sobrantes corresponden al conteo real.</div></div></div>
+    <div class="table-responsive">
+        <table class="table align-middle tabla-resultados-clasificacion">
+            <thead><tr><th>Variedad</th><th>Mallas</th><th>Declarados</th><th>Calidad</th><th>Exportables</th><th>Nacionales</th><th>Contabilizados</th><th>Faltantes</th><th>Sobrantes</th><th>Bunches de 25</th></tr></thead>
+            <tbody>
+            {% for grupo in detalles_agrupados %}
+                <tr>
+                    <td class="fw-semibold">{{ grupo.variedad }}</td>
+                    <td><strong>{{ grupo.mallas }}</strong></td>
+                    <td><strong>{{ grupo.tallos_recibidos }}</strong></td>
+                    <td><div class="valores-calidad">{% for calidad in grupo.calidades %}<span class="badge {% if calidad.nombre == 'Óptimo' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %}">{{ calidad.nombre }}</span>{% endfor %}</div></td>
+                    <td><div class="valores-calidad">{% for calidad in grupo.calidades %}<span>{{ calidad.exportables }}</span>{% endfor %}</div></td>
+                    <td><strong>{{ grupo.nacionales }}</strong></td>
+                    <td><strong>{{ grupo.tallos_contabilizados }}</strong></td>
+                    <td class="text-danger"><strong>{{ grupo.faltantes }}</strong></td>
+                    <td class="text-success"><strong>{{ grupo.sobrantes }}</strong></td>
+                    <td><div class="valores-calidad">{% for calidad in grupo.calidades %}<span>{{ calidad.bunches }}</span>{% endfor %}</div></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="10" class="empty-state">No existen resultados para esta clasificación.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block estilos %}
+<style>
+.tabla-resultados-clasificacion .valores-calidad{display:grid;gap:7px}
+.tabla-resultados-clasificacion .valores-calidad>span{min-height:23px;display:flex;align-items:center}
+.tabla-resultados-clasificacion .valores-calidad>.badge{width:max-content}
+</style>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends 'seguridad/baseRecuperacion.html' %}
+{% block contenido %}
+<div class="access-icon mb-3"><i class="bi bi-envelope-check"></i></div>
+<h1 class="h3 fw-semibold">Solicitud procesada</h1>
+<p class="text-secondary">Si la cuenta ingresada existe y está activa, enviamos un enlace al correo institucional de L.Y Flowers.</p>
+<div class="alert alert-light border small"><i class="bi bi-clock me-2"></i>El enlace tendrá una vigencia de 30 minutos y podrá utilizarse una sola vez.</div>
+<a class="btn btn-success w-100 fw-semibold mt-2" href="{% url 'login' %}">Volver al inicio de sesión</a>
+{% endblock %}

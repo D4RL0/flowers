@@ -1,0 +1,24 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Categorías de inventario{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4"><div><span class="eyebrow">Inventario</span><h1 class="page-title">Categorías y productos</h1><p class="page-subtitle">Seleccione una categoría para consultar y administrar sus productos.</p></div><a href="{% url 'nuevaCategoria' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Nueva categoría</a></div>
+
+<div class="inventory-access row g-3 mb-4">
+  <div class="col-md-6"><a href="{% url 'inicioEntrada' %}" class="inventory-access-card"><span class="inventory-access-icon bg-success-subtle text-success"><i class="bi bi-box-arrow-in-down"></i></span><span><strong>Entradas</strong><small>Ingresar productos al inventario</small></span><i class="bi bi-chevron-right ms-auto"></i></a></div>
+  <div class="col-md-6"><a href="{% url 'inicioSalida' %}" class="inventory-access-card"><span class="inventory-access-icon bg-warning-subtle text-warning"><i class="bi bi-box-arrow-up"></i></span><span><strong>Salidas</strong><small>Entregar productos del inventario</small></span><i class="bi bi-chevron-right ms-auto"></i></a></div>
+</div>
+
+<div class="row g-3">
+{% for c in categorias %}
+  <div class="col-md-6 col-xl-4"><article class="panel h-100 category-card {% if not c.estado %}category-disabled{% endif %}">
+    <div class="panel-body">
+      <div class="d-flex justify-content-between align-items-start gap-2"><span class="category-icon"><i class="bi bi-collection"></i></span>{% if c.estado %}<span class="badge badge-active">Activa</span>{% else %}<span class="badge badge-inactive">Inactiva</span>{% endif %}</div>
+      <h2 class="section-title mt-3 mb-1">{{ c.nombre }}</h2><p class="help-text mb-3">{{ c.descripcion|default:'Sin descripción.' }}</p>
+      <div class="category-count"><strong>{{ c.productos_activos|length }}</strong><span>producto{{ c.productos_activos|length|pluralize }} activo{{ c.productos_activos|length|pluralize }}</span></div>
+    </div>
+    <div class="panel-head gap-2"><a class="btn btn-sm btn-soft flex-grow-1" href="{% url 'inicioProducto' %}?categoria={{ c.codigo_categoria }}"><i class="bi bi-box-seam me-2"></i>Ver productos</a>{% if c.estado %}<a class="btn btn-sm btn-primary flex-grow-1" href="{% url 'nuevoProducto' %}?categoria={{ c.codigo_categoria }}"><i class="bi bi-plus-lg me-1"></i>Añadir producto</a>{% endif %}<a class="btn btn-sm btn-light" href="{% url 'editarCategoria' c.codigo_categoria %}" title="Editar categoría"><i class="bi bi-pencil"></i></a></div>
+  </article></div>
+{% empty %}<div class="col-12"><div class="panel empty-state">No hay categorías registradas.</div></div>{% endfor %}
+</div>
+<style>.inventory-access-card{height:100%;display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid #dfe8e2;border-radius:12px;background:#fff;color:var(--ink);text-decoration:none;transition:.15s}.inventory-access-card:hover{border-color:#8fc5a3;transform:translateY(-1px);box-shadow:0 8px 20px rgba(28,83,58,.08)}.inventory-access-card span:nth-child(2){display:flex;flex-direction:column}.inventory-access-card small{color:var(--muted)}.inventory-access-icon,.category-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;font-size:1.15rem}.category-icon{background:#eaf6ee;color:var(--forest)}.category-card{overflow:hidden}.category-disabled{opacity:.72}.category-count{display:flex;align-items:baseline;gap:8px}.category-count strong{font-size:1.8rem;color:var(--forest)}.category-count span{font-size:.78rem;color:var(--muted)}</style>
+{% endblock %}

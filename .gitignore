@@ -1,0 +1,31 @@
+# Secretos y configuración exclusiva de cada equipo
+.env
+.env.*
+!.env.example
+FlorLY/local_settings.py
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Archivos subidos y copias locales
+media/
+backups/
+
+# Editores y sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Fuentes temporales utilizadas al adaptar la plantilla
+.theme-inapp-source/

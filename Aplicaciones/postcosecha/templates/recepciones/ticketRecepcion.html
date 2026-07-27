@@ -1,0 +1,23 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Ticket de recepción {{ recepcion.numero_recepcion }}{% endblock %}
+{% block contenido %}
+<div class="ticket-actions d-flex justify-content-center gap-2 flex-wrap mb-4">
+  <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-2"></i>Imprimir ticket</button>
+  <a class="btn btn-soft" href="{% url 'detalleRecepcion' recepcion.codigo_recepcion %}"><i class="bi bi-eye me-2"></i>Ver detalle</a>
+  <a class="btn btn-light" href="{% url 'nuevaRecepcion' %}"><i class="bi bi-plus-lg me-2"></i>Nueva entrega</a>
+</div>
+<article class="receipt-ticket mx-auto bg-white text-dark p-4">
+  <header class="text-center mb-3"><h2 class="fw-bold mb-0">L.Y FLOWERS</h2><h4 class="fw-bold">TICKET DE RECEPCIÓN</h4></header>
+  <div><strong>FECHA:</strong> {{ recepcion.fecha_recepcion|date:'d/m/Y' }}</div>
+  <div><strong>TIPO:</strong> {% if recepcion.proveedor %}Flor del proveedor{% else %}Flor de finca propia{% endif %}</div>
+  <div><strong>{% if recepcion.proveedor %}PROVEEDOR{% else %}FINCA{% endif %}:</strong> {% if recepcion.proveedor %}{{ recepcion.proveedor|upper }}{% else %}{{ recepcion.finca.nombre|upper }}{% endif %}</div>
+  <div><strong>RECIBIDO POR:</strong> {{ recepcion.empleado_receptor|default:'—'|upper }}</div>
+  <div class="mb-3"><strong>RECEPCIÓN #:</strong> {{ recepcion.numero_recepcion }}</div>
+  <table class="w-100 ticket-table"><thead><tr><th>CANT.</th><th>VARIEDAD</th><th class="text-end">TOTAL</th></tr></thead><tbody>
+    {% for d in recepcion.detallerecepcion_set.all %}<tr><td>{{ d.cantidad_mallas }}M × {{ d.tallos_por_malla }}</td><td>{{ d.variedad.nombre|upper }}</td><td class="text-end">{{ d.total_tallos }}</td></tr>{% endfor %}
+  </tbody><tfoot><tr><th colspan="2">TOTAL TALLOS</th><th class="text-end">{{ recepcion.total_tallos }}</th></tr></tfoot></table>
+  <div class="signature-space"></div><div class="signature text-center"><strong>FIRMA PROVEEDOR</strong><br>{% if recepcion.proveedor %}{{ recepcion.proveedor|upper }}{% else %}{{ recepcion.finca.nombre|upper }}{% endif %}</div>
+  <div class="signature mt-4 text-center"><strong>FIRMA EMPRESA</strong><br>L.Y FLOWERS</div>
+</article>
+<style>.receipt-ticket{width:400px;max-width:100%;border:1px solid #ddd;font-family:Arial,sans-serif}.ticket-table th,.ticket-table td{padding:8px 6px;border-bottom:1px dotted #999}.ticket-table th{font-size:.85rem;color:#666}.signature-space{height:90px}.signature{border-top:1px solid #222;padding-top:6px}@media print{body *{visibility:hidden}.receipt-ticket,.receipt-ticket *{visibility:visible}.receipt-ticket{position:absolute;left:0;top:0;width:80mm;border:0;padding:5mm!important}.ticket-actions,.sidebar,.navbar{display:none!important}}</style>
+{% endblock %}

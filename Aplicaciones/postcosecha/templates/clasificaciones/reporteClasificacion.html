@@ -1,0 +1,48 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Reporte de clasificación {{ clasificacion.codigo_clasificacion }}{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4 no-print">
+  <div><span class="eyebrow">Postcosecha · Clasificación</span><h1 class="page-title">Resultado de clasificación</h1><p class="page-subtitle">{{ clasificacion.codigo_clasificacion }} · {{ clasificacion.fecha_clasificacion|date:'d/m/Y' }}</p></div>
+  <div class="d-flex gap-2"><button class="btn btn-soft" onclick="window.print()"><i class="bi bi-printer me-2"></i>Imprimir reporte</button><a class="btn btn-primary" href="{% url 'nuevaClasificacion' %}">Nueva jornada</a></div>
+</div>
+{% for reporte in reportes %}
+<section class="panel mb-4 reporte-clasificacion">
+  <div class="panel-head flex-wrap gap-3">
+    <div><div class="section-title">{% if reporte.recepcion.proveedor %}Proveedor: {{ reporte.recepcion.proveedor }}{% else %}Finca: {{ reporte.recepcion.finca.nombre }}{% endif %}</div><div class="help-text">Recepción N.° {{ reporte.recepcion.numero_recepcion }} · {{ reporte.recepcion.fecha_recepcion|date:'d/m/Y H:i' }}</div></div>
+    {% if reporte.completa %}<span class="badge text-bg-success">Clasificación completa</span>{% else %}<span class="badge text-bg-warning">Clasificación parcial</span>{% endif %}
+  </div>
+  {% if not reporte.completa %}
+  <div class="alert alert-warning m-3"><i class="bi bi-info-circle me-2"></i>La recepción todavía tiene flor pendiente. El reporte final se mostrará cuando toda la recepción quede clasificada.</div>
+  {% else %}
+  <div class="alert alert-light border m-3 mb-0"><div class="fw-semibold mb-1"><i class="bi bi-info-circle me-2"></i>Lectura del reporte</div><div class="small">Cada bunch contiene exactamente 25 tallos de la misma variedad y calidad. Los tallos que no completan un bunch aparecen como sueltos.</div></div>
+  <div class="panel-body">
+    <div class="row g-4">
+      {% for fila in reporte.filas %}
+      <div class="col-12">
+        <article class="resultado-variedad">
+          <div class="resultado-cabecera"><div><div class="help-text text-uppercase">Variedad</div><h2 class="h4 mb-0">{{ fila.variedad }}</h2></div><div class="text-end"><div class="help-text">Total exportable</div><div class="fs-3 fw-bold">{{ fila.total_exportables }}</div><div class="help-text">tallos</div></div></div>
+          <div class="row g-3 p-3">
+            <div class="col-lg-4">
+              <section class="grupo-resultado recibida h-100"><h3><i class="bi bi-box-seam me-2"></i>Flor recibida</h3><div class="dato-linea"><span>Mallas recibidas</span><strong>{{ fila.mallas_recibidas }}</strong></div><div class="dato-linea"><span>Tallos declarados</span><strong>{{ fila.tallos_recibidos }}</strong></div><div class="dato-linea"><span>Tallos contabilizados</span><strong>{{ fila.tallos_contabilizados }}</strong></div></section>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <section class="grupo-resultado optima h-100"><h3><i class="bi bi-award me-2"></i>Calidad óptima</h3><div class="dato-linea"><span>Tallos exportables</span><strong>{{ fila.exportables_optimos }}</strong></div><div class="dato-linea destacado"><span>Bunches de 25</span><strong>{{ fila.bunches_optimos }}</strong></div><div class="dato-linea"><span>Tallos en bunches</span><strong>{{ fila.tallos_bunches_optimos }}</strong></div><div class="dato-linea"><span>Tallos sueltos</span><strong>{{ fila.sueltos_optimos }}</strong></div></section>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <section class="grupo-resultado estandar h-100"><h3><i class="bi bi-check2-circle me-2"></i>Calidad estándar</h3><div class="dato-linea"><span>Tallos exportables</span><strong>{{ fila.exportables_estandar }}</strong></div><div class="dato-linea destacado"><span>Bunches de 25</span><strong>{{ fila.bunches_estandar }}</strong></div><div class="dato-linea"><span>Tallos en bunches</span><strong>{{ fila.tallos_bunches_estandar }}</strong></div><div class="dato-linea"><span>Tallos sueltos</span><strong>{{ fila.sueltos_estandar }}</strong></div></section>
+            </div>
+          </div>
+          <div class="resumen-secundario"><div><span>Nacionales</span><strong>{{ fila.nacionales }}</strong></div><div class="resumen-sobrantes"><span>Sobrantes</span><strong>{{ fila.sobrantes_clasificacion }}</strong></div><div class="resumen-faltantes"><span>Faltantes</span><strong>{{ fila.faltantes }}</strong></div><div><span>Contabilizados</span><strong>{{ fila.tallos_contabilizados }}</strong></div><div><span>Bunches totales</span><strong>{{ fila.bunches_optimos|add:fila.bunches_estandar }}</strong></div></div>
+        </article>
+      </div>
+      {% empty %}<div class="col-12"><div class="empty-state">No hay resultados para esta recepción.</div></div>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% empty %}<div class="panel"><div class="empty-state">Esta jornada no tiene recepciones asociadas.</div></div>{% endfor %}
+<a class="btn btn-light no-print" href="{% url 'inicioClasificacion' %}">← Volver a jornadas</a>
+<style>
+.resultado-variedad{border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#fff}.resultado-cabecera{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 20px;background:#f7faf8;border-bottom:1px solid var(--line)}.grupo-resultado{padding:15px;border-radius:12px;border:1px solid var(--line)}.grupo-resultado h3{font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px;font-weight:800}.grupo-resultado.recibida{background:#f7f8f4}.grupo-resultado.optima{background:#effaf3;border-color:#cce8d6}.grupo-resultado.estandar{background:#f1f5fa;border-color:#d5e0ec}.dato-linea{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:.88rem}.dato-linea:last-child{border-bottom:0}.dato-linea.destacado{font-size:1rem;color:var(--forest)}.resumen-secundario{display:grid;grid-template-columns:repeat(5,1fr);background:#faf8f2;border-top:1px solid var(--line)}.resumen-secundario>div{display:flex;justify-content:center;gap:10px;padding:12px;border-right:1px solid var(--line)}.resumen-secundario>div:last-child{border-right:0}.resumen-sobrantes{background:#effaf3;color:#26733d}.resumen-faltantes{background:#fff0f0;color:#a52d2d}@media(max-width:800px){.resumen-secundario{grid-template-columns:1fr 1fr}.resumen-secundario>div{border-bottom:1px solid var(--line)}}@media(max-width:575px){.resumen-secundario{grid-template-columns:1fr}.resumen-secundario>div{border-right:0}}@media print{.no-print,.sidebar,.topbar,footer{display:none!important}.app-shell{display:block}.page-wrap{padding:0}.panel{box-shadow:none}.resultado-variedad{break-inside:avoid}.grupo-resultado{padding:10px}.panel-body{padding:12px}}
+</style>
+{% endblock %}

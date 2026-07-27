@@ -1,0 +1,28 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Nuevo producto{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Inventario · Productos</span><h1 class="page-title">Registrar producto</h1><p class="page-subtitle">Indique cómo se medirá el producto. Si la unidad no existe, puede crearla aquí mismo.</p></div>
+<form class="panel" method="post" action="{% url 'guardarProducto' %}">{% csrf_token %}<div class="panel-body"><div class="row g-3"><div class="col-md-6"><label class="form-label required">Nombre</label><input class="form-control" name="nombre" required></div><div class="col-md-6"><label class="form-label">Marca</label><input class="form-control" name="marca"></div><div class="col-md-4"><label class="form-label required">Categoría</label><select class="form-select" name="categoria" required>{% for c in categorias %}<option value="{{ c.codigo_categoria }}" {% if c.codigo_categoria == categoria_seleccionada %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}</select></div><div class="col-md-4"><label class="form-label required">¿Qué unidad de medida tiene?</label><div class="input-group"><select class="form-select" id="unidadMedidaProducto" name="unidad_medida" required><option value="">Seleccione una unidad...</option>{% for u in unidades %}<option value="{{ u.codigo_unidad_medida }}">{{ u.nombre }} ({{ u.abreviatura }})</option>{% endfor %}</select><button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#modalUnidad"><i class="bi bi-plus-lg me-1"></i>Crear medida</button></div><div class="help-text mt-1">La unidad nueva quedará seleccionada automáticamente.</div></div><div class="col-md-4"><label class="form-label required">Stock mínimo</label><input class="form-control" type="number" min="0" step="0.01" name="stock_minimo" required></div></div></div><div class="panel-head justify-content-end"><a href="{% url 'inicioCategoria' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary">Guardar producto</button></div></form>
+
+<div class="modal fade" id="modalUnidad" tabindex="-1" aria-labelledby="tituloModalUnidad" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header"><div><h2 class="modal-title fs-5" id="tituloModalUnidad">Crear unidad de medida</h2><div class="help-text">No se permiten nombres ni abreviaturas repetidas.</div></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><form id="formUnidadRapida"><div class="modal-body"><div class="mb-3"><label class="form-label required">Nombre de la unidad</label><input class="form-control" name="nombre" placeholder="Ejemplo: LIBRA" maxlength="100" required></div><div><label class="form-label required">Abreviatura</label><input class="form-control" name="abreviatura" placeholder="Ejemplo: LB" maxlength="20" required></div></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" id="guardarUnidadRapida"><i class="bi bi-check-lg me-1"></i>Crear y seleccionar</button></div></form></div></div></div>
+{% endblock %}
+{% block scripts %}<script>
+const formUnidad=document.getElementById('formUnidadRapida');
+formUnidad.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const boton=document.getElementById('guardarUnidadRapida');
+  boton.disabled=true;
+  try{
+    const datos=new FormData(formUnidad);
+    const respuesta=await fetch('{% url "guardarUnidadMedidaRapida" %}',{method:'POST',headers:{'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:datos});
+    const resultado=await respuesta.json();
+    if(!respuesta.ok||!resultado.ok)throw new Error(resultado.error||'No se pudo crear la unidad.');
+    const selector=document.getElementById('unidadMedidaProducto');
+    selector.add(new Option(resultado.texto,resultado.codigo,true,true));
+    bootstrap.Modal.getInstance(document.getElementById('modalUnidad')).hide();
+    formUnidad.reset();
+    await Swal.fire({icon:'success',title:'Unidad creada',text:`${resultado.texto} quedó seleccionada.`,confirmButtonColor:'#58ad72'});
+  }catch(error){await Swal.fire({icon:'error',title:'No se pudo crear',text:error.message,confirmButtonColor:'#58ad72'});}
+  finally{boton.disabled=false;}
+});
+</script>{% endblock %}

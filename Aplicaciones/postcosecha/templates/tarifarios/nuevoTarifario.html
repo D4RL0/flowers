@@ -1,0 +1,22 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Nueva vigencia{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Postcosecha · Tarifarios</span><h1 class="page-title">Registrar nueva vigencia</h1><p class="page-subtitle">Cree un precio nuevo solo cuando realmente cambie el valor de una variedad.</p></div>
+<div class="alert alert-light border d-flex gap-3"><i class="bi bi-info-circle text-success fs-5"></i><div><strong>¿Cometió un error en el tarifario actual?</strong><div class="help-text mt-1">Regrese al listado y use <b>Corregir</b>. No necesita cerrar ni crear otro mientras el precio no haya sido usado en una liquidación.</div></div></div>
+<form action="{% url 'guardarTarifario' %}" method="post" class="panel">{% csrf_token %}
+  <div class="panel-body">
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label required">Variedad</label><select class="form-select" name="variedad" id="variedadTarifa" required><option value="">Seleccione...</option>{% for v in variedades %}<option value="{{ v.codigo_variedad }}" {% if v.tarifario_actual %}data-activo="1" data-codigo="{{ v.tarifario_actual.codigo_tarifario }}" data-inicio="{{ v.tarifario_actual.fecha_inicio|date:'d/m/Y' }}" data-optimo="{{ v.tarifario_actual.precio_optimo|floatformat:4 }}" data-estandar="{{ v.tarifario_actual.precio_estandar|floatformat:4 }}"{% endif %}>{{ v.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label required">Inicio de la nueva vigencia</label><input class="form-control" type="date" name="fecha_inicio" required><div class="help-text mt-1">El tarifario anterior terminará automáticamente el día previo.</div></div>
+      <div class="col-md-6"><label class="form-label required">Precio óptimo por tallo</label><div class="input-group"><span class="input-group-text">$</span><input class="form-control" type="number" min="0.0001" step="0.0001" name="precio_optimo" placeholder="0.0000" required></div></div>
+      <div class="col-md-6"><label class="form-label required">Precio estándar por tallo</label><div class="input-group"><span class="input-group-text">$</span><input class="form-control" type="number" min="0.0001" step="0.0001" name="precio_estandar" placeholder="0.0000" required></div></div>
+    </div>
+    <div class="alert alert-warning mt-4 mb-0 d-none" id="tarifaActual"><div class="fw-semibold"><i class="bi bi-exclamation-triangle me-2"></i>Esta variedad ya tiene un precio vigente</div><div class="small mt-2" id="detalleTarifaActual"></div><div class="small mt-1">Al guardar una nueva vigencia, el precio actual pasará al historial.</div></div>
+  </div>
+  <div class="panel-head justify-content-end"><a class="btn btn-light" href="{% url 'inicioTarifario' %}">Cancelar</a><button class="btn btn-primary"><i class="bi bi-calendar-plus me-2"></i>Crear nueva vigencia</button></div>
+</form>
+{% endblock %}
+{% block scripts %}<script>
+const variedadTarifa=document.getElementById('variedadTarifa'),avisoTarifa=document.getElementById('tarifaActual'),detalleTarifa=document.getElementById('detalleTarifaActual');
+variedadTarifa.addEventListener('change',()=>{const opcion=variedadTarifa.selectedOptions[0],activo=opcion?.dataset.activo;avisoTarifa.classList.toggle('d-none',!activo);if(activo)detalleTarifa.textContent=`${opcion.dataset.codigo} · Desde ${opcion.dataset.inicio} · Óptimo $${opcion.dataset.optimo} · Estándar $${opcion.dataset.estandar}`});
+</script>{% endblock %}

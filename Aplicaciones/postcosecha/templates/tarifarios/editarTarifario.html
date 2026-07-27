@@ -1,0 +1,17 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Corregir {{ tarifario.codigo_tarifario }}{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Postcosecha · Tarifarios</span><h1 class="page-title">Corregir tarifario</h1><p class="page-subtitle">Esta opción existe porque el precio todavía no se utilizó en ninguna liquidación.</p></div>
+<div class="alert alert-success border-0"><i class="bi bi-shield-check me-2"></i>Puede corregir el registro manteniendo el mismo código. Cuando sea utilizado, quedará protegido automáticamente.</div>
+<form action="{% url 'procesarEdicionTarifario' %}" method="post" class="panel">{% csrf_token %}<input type="hidden" name="codigo_tarifario" value="{{ tarifario.codigo_tarifario }}">
+  <div class="panel-body"><div class="row g-3">
+    <div class="col-md-6"><label class="form-label">Código</label><div class="detail-row fw-bold">{{ tarifario.codigo_tarifario }}</div></div>
+    <div class="col-md-6"><label class="form-label">Variedad</label><div class="detail-row fw-bold">{{ tarifario.variedad.nombre }}</div></div>
+    <div class="col-md-6"><label class="form-label required">Inicio de vigencia</label><input class="form-control" type="date" name="fecha_inicio" value="{{ tarifario.fecha_inicio|date:'Y-m-d' }}" required></div>
+    <div class="col-md-6"></div>
+    <div class="col-md-6"><label class="form-label required">Precio óptimo por tallo</label><div class="input-group"><span class="input-group-text">$</span><input class="form-control" type="number" min="0.0001" step="0.0001" name="precio_optimo" value="{{ tarifario.precio_optimo|stringformat:'.4f' }}" required></div></div>
+    <div class="col-md-6"><label class="form-label required">Precio estándar por tallo</label><div class="input-group"><span class="input-group-text">$</span><input class="form-control" type="number" min="0.0001" step="0.0001" name="precio_estandar" value="{{ tarifario.precio_estandar|stringformat:'.4f' }}" required></div></div>
+  </div></div>
+  <div class="panel-head justify-content-end"><a class="btn btn-light" href="{% url 'inicioTarifario' %}">Cancelar</a><button class="btn btn-primary"><i class="bi bi-check2 me-2"></i>Guardar corrección</button></div>
+</form>
+{% endblock %}

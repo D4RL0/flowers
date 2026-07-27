@@ -1,0 +1,57 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Reporte {{ liquidacion.codigo_liquidacion }}{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4 no-print">
+  <div><span class="eyebrow">Finanzas · Liquidaciones</span><h1 class="page-title">Reporte de liquidación</h1><p class="page-subtitle">Detalle económico de la flor exportable clasificada.</p></div>
+  <button class="btn btn-soft" onclick="window.print()"><i class="bi bi-printer me-2"></i>Imprimir reporte</button>
+</div>
+
+<section class="panel reporte-liquidacion">
+  <div class="panel-body cabecera-reporte">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+      <div><div class="help-text">CÓDIGO DE LIQUIDACIÓN</div><div class="fs-4 fw-bold">{{ liquidacion.codigo_liquidacion }}</div></div>
+      <span class="badge {% if liquidacion.estado == 'PAGADA' %}badge-active{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">{{ liquidacion.get_estado_display }}</span>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-3"><div class="help-text">CÓDIGO DEL PROVEEDOR</div><div class="fw-bold">{{ liquidacion.proveedor.codigo_proveedor }}</div></div>
+      <div class="col-md-5"><div class="help-text">NOMBRE DEL PROVEEDOR</div><div class="fw-bold">{{ liquidacion.proveedor }}</div></div>
+      <div class="col-md-2"><div class="help-text">ENTREGAS INCLUIDAS</div><div class="fw-semibold">Desde {{ liquidacion.fecha_inicio|date:'d/m/Y' }}<br>Hasta {{ liquidacion.fecha_fin|date:'d/m/Y' }}</div></div>
+      <div class="col-md-2"><div class="help-text">FECHA DE EMISIÓN</div><div class="fw-semibold">{{ liquidacion.fecha_liquidacion|date:'d/m/Y' }}</div></div>
+    </div>
+  </div>
+
+  <div class="alert alert-light border-start-0 border-end-0 rounded-0 mb-0 reporte-ayuda"><i class="bi bi-info-circle me-2"></i>Cada bloque de calidad reúne tallos, bunches de 25, tallos sueltos, tarifa y valor.</div>
+
+  <div class="tabla-reporte-wrap">
+    <table class="table align-middle mb-0 tabla-liquidacion">
+      <thead><tr><th>Fecha y variedad</th><th>Flor recibida</th><th>Exportación óptima</th><th>Exportación estándar</th><th>Nacional</th><th>Sobrantes</th><th>Total</th></tr></thead>
+      <tbody>
+      {% for fila in filas_reporte %}
+        <tr>
+          <td><strong class="d-block">{{ fila.variedad }}</strong><span class="dato-secundario"><i class="bi bi-calendar3 me-1"></i>{{ fila.fecha|date:'d/m/Y' }}</span></td>
+          <td><div class="dato-principal">{{ fila.tallos_recibidos }} <small>tallos</small></div><div class="dato-secundario">{{ fila.mallas }} mallas</div></td>
+          <td><div class="calidad-resumen calidad-optima"><div><strong>{{ fila.optimos }}</strong><small>tallos</small></div><div><strong>{{ fila.bunches_optimos }}</strong><small>bunches</small></div><div><strong>{{ fila.sueltos_optimos }}</strong><small>sueltos</small></div></div><div class="valor-calidad">${{ fila.precio_optimo|floatformat:4 }}/tallo · <strong>${{ fila.valor_optimo|floatformat:2 }}</strong></div></td>
+          <td><div class="calidad-resumen calidad-estandar"><div><strong>{{ fila.estandar }}</strong><small>tallos</small></div><div><strong>{{ fila.bunches_estandar }}</strong><small>bunches</small></div><div><strong>{{ fila.sueltos_estandar }}</strong><small>sueltos</small></div></div><div class="valor-calidad">${{ fila.precio_estandar|floatformat:4 }}/tallo · <strong>${{ fila.valor_estandar|floatformat:2 }}</strong></div></td>
+          <td><div class="dato-principal">{{ fila.nacionales }}</div><div class="dato-secundario">tallos</div></td>
+          <td><div class="dato-principal">{{ fila.sobrantes }}</div><div class="dato-secundario">tallos</div></td>
+          <td><strong class="total-fila">${{ fila.valor_total|floatformat:2 }}</strong></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty-state">No existen entregas clasificadas entre las fechas seleccionadas.</td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><th>TOTAL DE LAS ENTREGAS</th><th>{{ totales_reporte.mallas|floatformat:0 }} mallas<br>{{ totales_reporte.tallos_recibidos|floatformat:0 }} tallos</th><th>{{ totales_reporte.optimos|floatformat:0 }} tallos</th><th>{{ totales_reporte.estandar|floatformat:0 }} tallos</th><th>{{ totales_reporte.nacionales|floatformat:0 }}</th><th>{{ totales_reporte.sobrantes|floatformat:0 }}</th><th>${{ liquidacion.total|floatformat:2 }}</th></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="panel-body border-top d-flex justify-content-end"><div class="total-liquidacion"><span>TOTAL A PAGAR</span><strong>${{ liquidacion.total|floatformat:2 }}</strong></div></div>
+  {% if liquidacion.observacion %}<div class="panel-body border-top"><div class="help-text">OBSERVACIÓN</div><div>{{ liquidacion.observacion }}</div></div>{% endif %}
+</section>
+<div class="mt-4 no-print"><a class="btn btn-light" href="{% url 'inicioLiquidacion' %}">← Volver a liquidaciones</a></div>
+
+<style>
+.tabla-reporte-wrap{width:100%;overflow:visible}.tabla-liquidacion{width:100%!important;table-layout:fixed;font-size:.72rem}.tabla-liquidacion th{padding:10px 8px!important;color:#4f6656!important;background:#edf6f0!important;white-space:normal!important}.tabla-liquidacion td{padding:10px 8px!important;text-align:center;vertical-align:middle}.tabla-liquidacion th:nth-child(1){width:13%}.tabla-liquidacion th:nth-child(2){width:11%}.tabla-liquidacion th:nth-child(3),.tabla-liquidacion th:nth-child(4){width:24%}.tabla-liquidacion th:nth-child(5),.tabla-liquidacion th:nth-child(6){width:8%}.tabla-liquidacion th:nth-child(7){width:12%}.tabla-liquidacion td:first-child{text-align:left}.dato-principal{font-size:.9rem;font-weight:700;color:#293d30}.dato-secundario{color:#7b8a7f;font-size:.65rem}.calidad-resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:6px;border-radius:7px}.calidad-optima{background:#eaf7ee}.calidad-estandar{background:#f0f4f2}.calidad-resumen div{display:flex;flex-direction:column}.calidad-resumen strong{font-size:.8rem}.calidad-resumen small{color:#758079;font-size:.55rem}.valor-calidad{margin-top:5px;color:#68766d;font-size:.6rem}.total-fila{color:#438d58;font-size:.88rem}.tabla-liquidacion tfoot th{border-top:2px solid #b9d7c1!important;background:#f5faf6!important}.total-liquidacion{min-width:260px;padding:16px 20px;border:1px solid #b9dfc4;border-radius:10px;background:#eff9f2;text-align:right}.total-liquidacion span{display:block;color:#5d7464;font-size:.72rem;font-weight:700;letter-spacing:.08em}.total-liquidacion strong{display:block;margin-top:3px;color:#438d58;font-size:1.8rem}
+@media(max-width:900px){.tabla-liquidacion{font-size:.64rem}.tabla-liquidacion th,.tabla-liquidacion td{padding:7px 4px!important}.calidad-resumen{padding:4px;gap:1px}.valor-calidad{font-size:.52rem}}
+@media print{@page{size:landscape;margin:7mm}.no-print,.sidebar,.topbar,.app-footer,.dt-layout-row:not(.dt-layout-table){display:none!important}.main{margin:0!important}.page-wrap{padding:0!important}.reporte-liquidacion{border:0;box-shadow:none}.tabla-liquidacion{font-size:6.5px}.tabla-liquidacion th,.tabla-liquidacion td{padding:4px 3px!important}.cabecera-reporte{padding:8px!important}.reporte-ayuda{padding:5px!important}.total-liquidacion{padding:8px 12px}.total-liquidacion strong{font-size:18px}}
+</style>
+{% endblock %}

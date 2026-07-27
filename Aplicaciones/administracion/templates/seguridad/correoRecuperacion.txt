@@ -1,0 +1,10 @@
+L.Y Flowers - Recuperación de acceso
+
+Se solicitó restablecer la contraseña de la cuenta: {{ usuario.username }}
+
+Abra el siguiente enlace para crear una contraseña nueva:
+{{ enlace }}
+
+El enlace es de un solo uso y vence en {{ minutos }} minutos.
+
+Si usted no reconoce esta solicitud, no abra el enlace y comuníquese con el administrador del sistema.

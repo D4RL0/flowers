@@ -1,0 +1,16 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Cierres mensuales{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Finanzas · Liquidaciones</span><h1 class="page-title">Generación mensual automática</h1><p class="page-subtitle">El sistema calcula cada pago según el primer día de entrega de cada proveedor.</p></div>
+<div class="panel">
+  <div class="panel-body">
+    <div class="row g-3">
+      <div class="col-md-4"><div class="p-3 rounded bg-light h-100"><strong>1. Fecha de cierre</strong><p class="mb-0 mt-2 text-secondary">Se genera un día antes de cumplirse cada mes desde la primera recepción.</p></div></div>
+      <div class="col-md-4"><div class="p-3 rounded bg-light h-100"><strong>2. Recepciones incluidas</strong><p class="mb-0 mt-2 text-secondary">El corte se realiza dos días antes para respetar el plazo de clasificación.</p></div></div>
+      <div class="col-md-4"><div class="p-3 rounded bg-light h-100"><strong>3. Documento y pago</strong><p class="mb-0 mt-2 text-secondary">Primero se entrega el reporte; después se carga el documento y se habilita el pago.</p></div></div>
+    </div>
+    <div class="alert alert-success border-0 mt-4 mb-0"><i class="bi bi-shield-check me-2"></i>Cada clasificación se liquida una sola vez. Las entregas posteriores al corte pasan al siguiente ciclo.</div>
+  </div>
+  <div class="panel-head justify-content-end"><a href="{% url 'inicioLiquidacion' %}" class="btn btn-light">Volver</a><form action="{% url 'guardarLiquidacion' %}" method="post">{% csrf_token %}<button class="btn btn-primary"><i class="bi bi-arrow-repeat me-2"></i>Verificar cierres pendientes</button></form></div>
+</div>
+{% endblock %}

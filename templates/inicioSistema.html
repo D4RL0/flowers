@@ -1,0 +1,143 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Resumen{% endblock %}
+{% block contenido %}
+<div class="dashboard-heading d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+    <div>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-2"><li class="breadcrumb-item"><i class="bi bi-house-door me-1"></i>L.Y Flowers</li><li class="breadcrumb-item active">Dashboard</li></ol></nav>
+        <h1 class="page-title mb-1">Dashboard</h1>
+        <p class="page-subtitle mb-0">Vista general de la operación florícola.</p>
+    </div>
+    {% if es_secretaria %}<a href="{% url 'inicioLiquidacion' %}" class="btn btn-primary px-3"><i class="bi bi-receipt me-2"></i>Ver liquidaciones</a>{% else %}<a href="{% url 'nuevaRecepcion' %}" class="btn btn-primary px-3"><i class="bi bi-plus-lg me-2"></i>Nueva recepción</a>{% endif %}
+</div>
+
+{% if not es_empleado and total_liquidaciones_documento_pendiente %}
+<div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 mb-4">
+    <i class="bi bi-file-earmark-check fs-4"></i>
+    <div class="flex-grow-1"><strong>{{ total_liquidaciones_documento_pendiente }} reporte(s) mensual(es) listo(s)</strong><div>El cálculo ya fue cerrado. Entregue el reporte al proveedor y luego cargue el documento que este envíe.</div>{% for l in liquidaciones_documento_pendiente %}<a class="me-3" href="{% url 'verLiquidacion' l.codigo_liquidacion %}">{{ l.codigo_liquidacion }} · {{ l.proveedor }}</a>{% endfor %}</div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-3 dashboard-stats">
+    <div class="col-sm-6 col-xl-3">
+        <a href="{% url 'inicioProveedor' %}" class="stat-card stat-primary text-decoration-none">
+            <span class="stat-icon"><i class="bi bi-people"></i></span>
+            <span><span class="stat-label">Proveedores activos</span><strong>{{ total_proveedores }}</strong><small><i class="bi bi-arrow-up-right me-1"></i>Ver proveedores</small></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="{% url 'inicioVariedad' %}" class="stat-card stat-success text-decoration-none">
+            <span class="stat-icon"><i class="bi bi-flower2"></i></span>
+            <span><span class="stat-label">Variedades activas</span><strong>{{ total_variedades }}</strong><small><i class="bi bi-arrow-up-right me-1"></i>Ver variedades</small></span>
+        </a>
+    </div>
+    {% if not es_empleado %}
+    <div class="col-sm-6 col-xl-3">
+        <a href="{% url 'inicioFinca' %}" class="stat-card stat-info text-decoration-none">
+            <span class="stat-icon"><i class="bi bi-geo-alt"></i></span>
+            <span><span class="stat-label">Fincas activas</span><strong>{{ total_fincas }}</strong><small><i class="bi bi-arrow-up-right me-1"></i>Ver fincas</small></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <a href="{% url 'inicioPersonal' %}" class="stat-card stat-warning text-decoration-none">
+            <span class="stat-icon"><i class="bi bi-person-badge"></i></span>
+            <span><span class="stat-label">Personal activo</span><strong>{{ total_personal }}</strong><small><i class="bi bi-arrow-up-right me-1"></i>Ver personal</small></span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <section class="card operation-card h-100">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                <div><h2 class="h6 mb-1">Flujo de postcosecha</h2><small class="text-secondary">Acciones principales del proceso diario</small></div>
+                <span class="badge rounded-pill text-bg-light border">Operación</span>
+            </div>
+            <div class="card-body">
+                <div class="process-flow">
+                    {% if not es_secretaria %}<a href="{% url 'nuevaRecepcion' %}" class="process-step">
+                        <span class="process-number">01</span><span class="process-icon"><i class="bi bi-box-arrow-in-down"></i></span><span><strong>Recibir flor</strong><small>Registrar una nueva entrega</small></span><i class="bi bi-chevron-right process-arrow"></i>
+                    </a>
+                    <a href="{% url 'nuevaClasificacion' %}" class="process-step">
+                        <span class="process-number">02</span><span class="process-icon"><i class="bi bi-ui-checks-grid"></i></span><span><strong>Clasificar</strong><small>Procesar la recepción pendiente</small></span><i class="bi bi-chevron-right process-arrow"></i>
+                    </a>{% endif %}
+                    {% if not es_empleado %}
+                    <a href="{% url 'inicioLiquidacion' %}" class="process-step">
+                        <span class="process-number">03</span><span class="process-icon"><i class="bi bi-receipt"></i></span><span><strong>Liquidaciones</strong><small>Revisar reportes mensuales generados</small></span><i class="bi bi-chevron-right process-arrow"></i>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'inicioClasificacion' %}" class="process-step">
+                        <span class="process-number">03</span><span class="process-icon"><i class="bi bi-clipboard-data"></i></span><span><strong>Consultar</strong><small>Revisar clasificaciones realizadas</small></span><i class="bi bi-chevron-right process-arrow"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card h-100">
+            <div class="card-header bg-white"><h2 class="h6 mb-1">Resumen de registros</h2><small class="text-secondary">Información maestra disponible</small></div>
+            <div class="card-body p-0">
+                <div class="summary-list">
+                    <div><span class="summary-icon bg-primary-subtle text-primary"><i class="bi bi-database"></i></span><span><strong>{{ total_proveedores|add:total_variedades }}</strong><small>Proveedores y variedades</small></span></div>
+                    {% if not es_empleado %}<div><span class="summary-icon bg-success-subtle text-success"><i class="bi bi-building"></i></span><span><strong>{{ total_fincas }}</strong><small>Centros de producción</small></span></div>
+                    <div><span class="summary-icon bg-warning-subtle text-warning"><i class="bi bi-person-check"></i></span><span><strong>{{ total_personal }}</strong><small>Colaboradores activos</small></span></div>{% endif %}
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="d-flex align-items-end justify-content-between flex-wrap gap-2 mt-4 mb-3">
+    <div><h2 class="h5 mb-1">Estadísticas de la operación</h2><small class="text-secondary">Información calculada automáticamente con los registros del sistema.</small></div>
+    <span class="badge rounded-pill text-bg-light border">Actualizado al ingresar</span>
+</div>
+<div class="row g-3 mb-3 dashboard-charts">
+    <div class="col-xl-7">
+        <section class="card h-100"><div class="card-header bg-white"><h3 class="h6 mb-1">Tallos recibidos y clasificados</h3><small class="text-secondary">Comparación de los últimos seis meses</small></div><div class="card-body chart-body"><canvas id="graficoTendencia" aria-label="Gráfico de tallos recibidos y clasificados"></canvas></div></section>
+    </div>
+    <div class="col-xl-5">
+        <section class="card h-100"><div class="card-header bg-white"><h3 class="h6 mb-1">Distribución por calidad</h3><small class="text-secondary">Tallos clasificados durante {% now "Y" %}</small></div><div class="card-body chart-body"><canvas id="graficoCalidad" aria-label="Gráfico de distribución por calidad"></canvas></div></section>
+    </div>
+    <div class="{% if es_empleado %}col-12{% else %}col-xl-6{% endif %}">
+        <section class="card h-100"><div class="card-header bg-white"><h3 class="h6 mb-1">Origen de la flor</h3><small class="text-secondary">Proveedores frente a finca propia en {% now "Y" %}</small></div><div class="card-body chart-body"><canvas id="graficoOrigen" aria-label="Gráfico del origen de la flor"></canvas></div></section>
+    </div>
+    {% if not es_empleado %}<div class="col-xl-6">
+        <section class="card h-100"><div class="card-header bg-white"><h3 class="h6 mb-1">Estado de liquidaciones</h3><small class="text-secondary">Valor acumulado pagado y pendiente</small></div><div class="card-body chart-body"><canvas id="graficoLiquidaciones" aria-label="Gráfico del estado de liquidaciones"></canvas></div></section>
+    </div>{% endif %}
+</div>
+
+<section class="card quick-panel">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between"><div><h2 class="h6 mb-1">Accesos rápidos</h2><small class="text-secondary">Módulos utilizados con mayor frecuencia</small></div><i class="bi bi-lightning-charge text-warning fs-5"></i></div>
+    <div class="card-body">
+        <div class="row g-2">
+            {% if not es_secretaria %}<div class="col-md-6 col-xl-3"><a href="{% url 'inicioRecepcion' %}" class="quick-link"><span><i class="bi bi-inboxes"></i></span><div><strong>Recepciones</strong><small>Consultar entregas</small></div><i class="bi bi-arrow-right"></i></a></div>
+            <div class="col-md-6 col-xl-3"><a href="{% url 'inicioClasificacion' %}" class="quick-link"><span><i class="bi bi-clipboard-check"></i></span><div><strong>Clasificación</strong><small>Procesar y reportar</small></div><i class="bi bi-arrow-right"></i></a></div>{% endif %}
+            {% if es_administrador %}<div class="col-md-6 col-xl-3"><a href="{% url 'inicioProducto' %}" class="quick-link"><span><i class="bi bi-box-seam"></i></span><div><strong>Inventario</strong><small>Revisar existencias</small></div><i class="bi bi-arrow-right"></i></a></div>{% endif %}
+            {% if not es_empleado %}<div class="col-md-6 col-xl-3"><a href="{% url 'inicioLiquidacion' %}" class="quick-link"><span><i class="bi bi-file-earmark-text"></i></span><div><strong>Liquidaciones</strong><small>Consultar reportes</small></div><i class="bi bi-arrow-right"></i></a></div>{% endif %}
+        </div>
+    </div>
+</section>
+{{ graficos_dashboard|json_script:"datosGraficosDashboard" }}
+{% endblock %}
+
+{% block estilos %}
+<style>
+.chart-body{position:relative;min-height:310px}.dashboard-charts .card{overflow:hidden}.dashboard-charts .card-header{min-height:68px}
+@media(max-width:575px){.chart-body{min-height:270px;padding:14px}}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+const datosGraficos=JSON.parse(document.getElementById('datosGraficosDashboard').textContent);
+Chart.defaults.font.family='Poppins, sans-serif';Chart.defaults.color='#697078';
+const formatoNumero=valor=>new Intl.NumberFormat('es-EC').format(valor);
+const opcionesBase={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:18}},tooltip:{callbacks:{label:context=>`${context.dataset.label||context.label}: ${formatoNumero(context.parsed.y??context.parsed)}`}}}};
+new Chart(document.getElementById('graficoTendencia'),{type:'bar',data:{labels:datosGraficos.tendencia.etiquetas,datasets:[{label:'Recibidos',data:datosGraficos.tendencia.recibidos,backgroundColor:'rgba(79,138,101,.3)',borderColor:'#4f8a65',borderWidth:1,borderRadius:5},{label:'Clasificados',data:datosGraficos.tendencia.clasificados,backgroundColor:'rgba(63,82,74,.76)',borderColor:'#3f524a',borderWidth:1,borderRadius:5}]},options:{...opcionesBase,scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{callback:formatoNumero},grid:{color:'rgba(60,70,65,.07)'}}}}});
+new Chart(document.getElementById('graficoCalidad'),{type:'doughnut',data:{labels:datosGraficos.calidad.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.calidad.valores,backgroundColor:['#4f8a65','#88a094','#d5a84b'],borderColor:'#fff',borderWidth:3,hoverOffset:7}]},options:{...opcionesBase,cutout:'62%'}});
+new Chart(document.getElementById('graficoOrigen'),{type:'pie',data:{labels:datosGraficos.origen.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.origen.valores,backgroundColor:['#4f8a65','#59656b'],borderColor:'#fff',borderWidth:3,hoverOffset:7}]},options:opcionesBase});
+if(datosGraficos.liquidaciones){const opcionesDinero={...opcionesBase,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{callback:valor=>`$${formatoNumero(valor)}`},grid:{color:'rgba(60,70,65,.07)'}},y:{grid:{display:false}}},plugins:{...opcionesBase.plugins,legend:{display:false},tooltip:{callbacks:{label:context=>`$${new Intl.NumberFormat('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}).format(context.parsed.x)}`}}}};new Chart(document.getElementById('graficoLiquidaciones'),{type:'bar',data:{labels:datosGraficos.liquidaciones.etiquetas,datasets:[{label:'Valor',data:datosGraficos.liquidaciones.valores,backgroundColor:['#4f8a65','#d5a84b'],borderRadius:7,barThickness:38}]},options:opcionesDinero})}
+</script>
+{% endblock %}

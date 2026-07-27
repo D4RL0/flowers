@@ -1,0 +1,57 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Reporte diario de clasificación{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4 no-print">
+  <div>
+    <span class="eyebrow">Postcosecha · Clasificación</span>
+    <h1 class="page-title">Reporte diario general</h1>
+    <p class="page-subtitle">Resumen de bunches completos producidos, sin identificar proveedores, fincas ni variedades.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-light" href="{% url 'inicioClasificacion' %}">← Volver</a>
+    <button class="btn btn-soft" type="button" onclick="window.print()"><i class="bi bi-printer me-2"></i>Imprimir</button>
+  </div>
+</div>
+
+<form class="panel mb-4 no-print" method="get">
+  <div class="panel-body d-flex align-items-end gap-3 flex-wrap">
+    <div>
+      <label class="form-label">Fecha del reporte</label>
+      <input class="form-control" type="date" name="fecha" value="{{ fecha_consulta|date:'Y-m-d' }}" required>
+    </div>
+    <button class="btn btn-primary"><i class="bi bi-search me-2"></i>Generar reporte</button>
+  </div>
+</form>
+
+<section class="panel reporte-diario">
+  <div class="panel-head">
+    <div>
+      <div class="eyebrow">L.Y. Flowers</div>
+      <div class="section-title fs-4">Producción del {{ fecha_consulta|date:'d/m/Y' }}</div>
+    </div>
+    <span class="badge text-bg-light">{{ resumen.clasificaciones }} clasificación{{ resumen.clasificaciones|pluralize:"es" }}</span>
+  </div>
+  <div class="panel-body">
+    {% if resumen.total_bunches %}
+    <div class="text-center py-3 mb-4">
+      <div class="help-text text-uppercase fw-bold">Producción total del día</div>
+      <div class="display-3 fw-bold" style="color:var(--ink)">{{ resumen.total_bunches }}</div>
+      <div class="fs-5">bunches completos de 25 tallos</div>
+      <div class="mt-2 text-secondary">{{ resumen.bunches_optimos }} óptimos y {{ resumen.bunches_estandar }} estándar</div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6"><div class="metric origen-card"><div class="d-flex justify-content-between align-items-start"><div><div class="metric-label">Procedentes de proveedores</div><div class="metric-value">{{ resumen.porcentaje_proveedor }}%</div></div><div class="metric-icon"><i class="bi bi-truck"></i></div></div><div class="help-text mt-2">{{ resumen.bunches_proveedor }} bunches del total diario</div></div></div>
+      <div class="col-md-6"><div class="metric origen-card"><div class="d-flex justify-content-between align-items-start"><div><div class="metric-label">Procedentes de finca</div><div class="metric-value">{{ resumen.porcentaje_finca }}%</div></div><div class="metric-icon"><i class="bi bi-geo-alt"></i></div></div><div class="help-text mt-2">{{ resumen.bunches_finca }} bunches del total diario</div></div></div>
+    </div>
+
+    <div class="alert alert-light border mb-0"><i class="bi bi-info-circle me-2"></i>Quedaron {{ resumen.tallos_sueltos }} tallos exportables que no completaron bunches de 25 dentro de su clasificación, variedad y calidad.</div>
+    {% else %}
+    <div class="empty-state"><i class="bi bi-bar-chart fs-1 d-block mb-3"></i><div class="fw-semibold">No hay bunches completos registrados para esta fecha.</div><div class="help-text mt-1">Seleccione otro día o finalice las clasificaciones pendientes.</div></div>
+    {% endif %}
+  </div>
+</section>
+<style>
+@media print{.no-print,.sidebar,.topbar,footer{display:none!important}.app-shell{display:block}.page-wrap{padding:0}.reporte-diario{border:0;box-shadow:none}}
+</style>
+{% endblock %}

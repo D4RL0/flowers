@@ -1,0 +1,38 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Nueva recepción{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Postcosecha · Recepciones</span><h1 class="page-title">Registrar recepción</h1><p class="page-subtitle">Seleccione un único origen y registre cada presentación de mallas recibida.</p></div>
+<form action="{% url 'guardarRecepcion' %}" method="post" class="panel" id="formRecepcion">{% csrf_token %}
+  <div class="panel-body">
+    <div class="row g-3 mb-4">
+      <div class="col-12"><div class="alert alert-light border mb-0"><div class="d-flex gap-2"><i class="bi bi-clock-history text-success"></i><div><strong>Fecha y hora automáticas</strong><div class="help-text mt-1">El servidor registrará el momento exacto al guardar. Horario permitido: lunes a viernes de 08:00 a 15:00 y sábados de 08:00 a 12:00. Los domingos no se admiten recepciones.</div></div></div></div></div>
+      <div class="col-md-4"><label class="form-label">Proveedor externo</label><select class="form-select origen" name="proveedor" id="proveedor"><option value="">Ninguno</option>{% for p in proveedores %}<option value="{{ p.codigo_proveedor }}">{{ p }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><label class="form-label">Finca propia</label><select class="form-select origen" name="finca" id="finca"><option value="">Ninguna</option>{% for f in fincas %}<option value="{{ f.codigo_finca }}">{{ f.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label required">Empleado receptor</label><select class="form-select" name="empleado_receptor" required><option value="">Seleccione...</option>{% for p in personal_postcosecha %}<option value="{{ p.codigo_personal }}">{{ p }}</option>{% endfor %}</select><div class="help-text mt-1">Solo se muestra personal activo del área de postcosecha.</div></div>
+      <div class="col-12"><label class="form-label">Observación</label><textarea class="form-control" name="observacion" rows="2" placeholder="Opcional"></textarea></div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-3"><div><div class="section-title">Variedades recibidas</div><div class="help-text">Repita la variedad cuando llegue en mallas con distinta cantidad de tallos.</div></div><button class="btn btn-soft" type="button" id="agregarDetalle"><i class="bi bi-plus-lg me-1"></i>Agregar variedad</button></div>
+    <div id="detalles">
+      <div class="detail-row detalle mb-2"><div class="row g-2 align-items-end">
+        <div class="col-lg-4"><label class="form-label required">Variedad</label><select class="form-select" name="variedad" required><option value="">Seleccione...</option>{% for v in variedades %}<option value="{{ v.codigo_variedad }}">{{ v.nombre }}</option>{% endfor %}</select></div>
+        <div class="col-6 col-lg-2"><label class="form-label required">Mallas</label><input class="form-control cantidad-mallas" type="number" min="1" name="cantidad_mallas" required></div>
+        <div class="col-6 col-lg-2"><label class="form-label required">Tallos por malla</label><input class="form-control tallos-malla" type="number" min="1" name="tallos_por_malla" required></div>
+        <div class="col-10 col-lg-3"><label class="form-label">Total tallos</label><input class="form-control total-fila fw-semibold" value="0" readonly></div>
+        <div class="col-2 col-lg-1"><button type="button" class="btn btn-outline-danger action-btn quitar" aria-label="Quitar detalle"><i class="bi bi-trash"></i></button></div>
+      </div></div>
+    </div>
+    <div class="d-flex justify-content-end align-items-center gap-3 border-top mt-3 pt-3"><span class="section-title">Total general de tallos</span><span class="fs-4 fw-bold" id="totalGeneral">0</span></div>
+  </div>
+  <div class="panel-head justify-content-end"><a href="{% url 'inicioRecepcion' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary"><i class="bi bi-printer me-2"></i>Guardar e imprimir</button></div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const detalles=document.getElementById('detalles');
+function calcular(){let general=0;detalles.querySelectorAll('.detalle').forEach(f=>{const total=(Number(f.querySelector('.cantidad-mallas').value)||0)*(Number(f.querySelector('.tallos-malla').value)||0);f.querySelector('.total-fila').value=total;general+=total});document.getElementById('totalGeneral').textContent=general.toLocaleString('es-EC')}
+document.getElementById('agregarDetalle').onclick=()=>{const n=detalles.firstElementChild.cloneNode(true);n.querySelectorAll('input,select').forEach(x=>x.value=x.classList.contains('total-fila')?'0':'');detalles.appendChild(n);calcular()};
+detalles.addEventListener('input',calcular);detalles.addEventListener('click',e=>{const b=e.target.closest('.quitar');if(b&&detalles.children.length>1){b.closest('.detalle').remove();calcular()}});
+document.querySelectorAll('.origen').forEach(s=>s.addEventListener('change',()=>{if(s.value)document.querySelectorAll('.origen').forEach(o=>{if(o!==s)o.value=''})}));
+document.getElementById('formRecepcion').addEventListener('submit',e=>{if(!document.getElementById('proveedor').value&&!document.getElementById('finca').value){e.preventDefault();Swal.fire('Origen requerido','Seleccione un proveedor o una finca.','warning')}});
+</script>
+{% endblock %}

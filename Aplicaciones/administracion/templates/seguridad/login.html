@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ingresar | L.Y Flowers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body{min-height:100vh;display:grid;place-items:center;background:#f4f9f5;font-family:Poppins,sans-serif}
+        .login-card{width:min(420px,calc(100% - 32px));background:#fff;border:1px solid #dfebe2;border-radius:12px;padding:34px;box-shadow:0 8px 30px rgba(45,92,58,.09)}
+        .logo{width:52px;height:52px;display:grid;place-items:center;border-radius:12px;background:#edf8f0;color:#58ad72;font-size:25px}
+        .form-control{padding:.75rem;border-color:#dce6df;border-radius:7px}
+        .form-control:focus{border-color:#8bcca0;box-shadow:0 0 0 .2rem rgba(88,173,114,.14)}
+        .btn{padding:.75rem;border-radius:7px}.btn-success{background:#58ad72;border-color:#58ad72}.btn-success:hover{background:#48975f;border-color:#48975f}
+    </style>
+</head>
+<body>
+<main class="login-card">
+    <div class="logo mb-3"><i class="bi bi-flower1"></i></div>
+    <h1 class="h3 fw-semibold">Ingresar a L.Y Flowers</h1>
+    <p class="text-secondary mb-4">Utilice únicamente sus credenciales autorizadas.</p>
+    <form method="post" autocomplete="off">
+        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+        <div class="mb-3"><label class="form-label fw-semibold">Usuario</label><input class="form-control" name="username" maxlength="150" autocomplete="username" required autofocus></div>
+        <div class="mb-4"><label class="form-label fw-semibold">Contraseña</label><div class="input-group"><input class="form-control" id="password" type="password" name="password" autocomplete="current-password" required><button class="btn btn-outline-secondary bg-white text-dark border" type="button" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password'"><i class="bi bi-eye"></i></button></div></div>
+        <button class="btn btn-success w-100 fw-semibold">Ingresar de forma segura</button>
+    </form>
+    <div class="text-center mt-3"><a class="small text-decoration-none" style="color:#438d58" href="{% url 'recuperarCredenciales' %}">¿Olvidó su contraseña?</a></div>
+    <div class="text-secondary small text-center mt-4"><i class="bi bi-shield-lock me-1"></i>La sesión y los intentos de acceso están protegidos.</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+const mensajes=[{% for message in messages %}{texto:'{{ message|escapejs }}',tipo:'{{ message.tags|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}];
+(async()=>{for(const mensaje of mensajes){await Swal.fire({icon:mensaje.tipo.includes('error')?'error':'info',title:mensaje.tipo.includes('error')?'Acceso no permitido':'Información',text:mensaje.texto,confirmButtonColor:'#58ad72',heightAuto:false,scrollbarPadding:false,allowOutsideClick:false})}})();
+</script>
+</body>
+</html>

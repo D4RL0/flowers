@@ -1,0 +1,43 @@
+{% extends 'plantilla.html' %}
+{% block titulo %}Tarifarios{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+  <div><span class="eyebrow">Postcosecha</span><h1 class="page-title">Tarifarios</h1><p class="page-subtitle">Precios por tallo organizados por vigencia y nivel de protección.</p></div>
+  <a href="{% url 'nuevoTarifario' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Nueva vigencia</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="tarifa-guia guia-editable"><i class="bi bi-pencil-square"></i><div><strong>Recién creado</strong><small>Si aún no fue usado, puede corregir fecha y precios sin cerrarlo.</small></div></div></div>
+  <div class="col-md-4"><div class="tarifa-guia guia-protegida"><i class="bi bi-shield-lock"></i><div><strong>Precio utilizado</strong><small>Al participar en una liquidación queda protegido por auditoría.</small></div></div></div>
+  <div class="col-md-4"><div class="tarifa-guia guia-historial"><i class="bi bi-clock-history"></i><div><strong>Historial</strong><small>Una vigencia cerrada se conserva y no puede modificarse.</small></div></div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><div><div class="section-title">Vigencias registradas</div><div class="help-text">Use “Corregir” solamente para errores de un precio que todavía no ha sido utilizado.</div></div></div>
+  <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Código</th><th>Variedad</th><th>Precio óptimo</th><th>Precio estándar</th><th>Vigencia</th><th>Condición</th><th class="text-end">Acciones</th></tr></thead><tbody>
+  {% for t in tarifarios %}
+    <tr>
+      <td class="fw-semibold">{{ t.codigo_tarifario }}</td>
+      <td><strong>{{ t.variedad.nombre }}</strong></td>
+      <td><span class="precio-tallo">${{ t.precio_optimo|floatformat:4 }}</span><small>/tallo</small></td>
+      <td><span class="precio-tallo">${{ t.precio_estandar|floatformat:4 }}</span><small>/tallo</small></td>
+      <td><div class="fw-semibold">Desde {{ t.fecha_inicio|date:'d/m/Y' }}</div><div class="help-text">{% if t.fecha_fin %}Hasta {{ t.fecha_fin|date:'d/m/Y' }}{% else %}Sin fecha de cierre{% endif %}</div></td>
+      <td>{% if t.puede_editar %}<span class="badge estado-editable"><i class="bi bi-pencil me-1"></i>Editable · sin uso</span>{% elif t.estado and t.utilizado %}<span class="badge estado-protegido"><i class="bi bi-shield-lock me-1"></i>Vigente · protegido</span>{% else %}<span class="badge estado-historial"><i class="bi bi-clock-history me-1"></i>Historial</span>{% endif %}</td>
+      <td class="text-end">
+        <div class="d-inline-flex gap-1 align-items-center flex-wrap justify-content-end">
+          {% if t.puede_editar %}<a class="btn btn-sm btn-soft" href="{% url 'editarTarifario' t.codigo_tarifario %}"><i class="bi bi-pencil me-1"></i>Corregir</a>{% endif %}
+          {% if t.estado %}<button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#cerrar{{ t.codigo_tarifario }}"><i class="bi bi-calendar-x me-1"></i>Cerrar</button>{% endif %}
+        </div>
+        {% if t.estado %}<div class="collapse mt-2" id="cerrar{{ t.codigo_tarifario }}"><form action="{% url 'cerrarTarifario' t.codigo_tarifario %}" method="post" class="cierre-tarifa form-cerrar-tarifa ms-auto">{% csrf_token %}<label class="help-text text-start d-block mb-1">Último día de vigencia</label><div class="input-group input-group-sm"><input class="form-control" type="date" name="fecha_fin" min="{{ t.fecha_inicio|date:'Y-m-d' }}" required><button class="btn btn-danger" type="submit">Confirmar</button></div></form></div>{% endif %}
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="7" class="empty-state">No hay tarifas registradas.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+<style>
+.tarifa-guia{height:100%;display:flex;gap:12px;padding:16px;border:1px solid;border-radius:10px;background:#fff}.tarifa-guia>i{font-size:1.3rem}.tarifa-guia div{display:flex;flex-direction:column}.tarifa-guia small{margin-top:3px;color:#6f7972;font-size:.7rem}.guia-editable{border-color:#b9dfc4;background:#f1faf4;color:#438d58}.guia-protegida{border-color:#c9d8e8;background:#f3f7fb;color:#476b91}.guia-historial{border-color:#dfe2e0;background:#f7f8f7;color:#707873}.precio-tallo{font-size:1rem;font-weight:700;color:#334a39}.precio-tallo+small{display:block;color:#879088;font-size:.6rem}.estado-editable{background:#e7f6ec;color:#357c4a}.estado-protegido{background:#eaf1f8;color:#456b91}.estado-historial{background:#eff1f0;color:#667069}.cierre-tarifa{max-width:270px}
+</style>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('.form-cerrar-tarifa').forEach(form=>form.addEventListener('submit',event=>{if(form.dataset.confirmado)return;event.preventDefault();Swal.fire({icon:'warning',title:'¿Cerrar este tarifario?',text:'Después de cerrarlo quedará como historial y no podrá editarse.',showCancelButton:true,confirmButtonColor:'#b63b45',cancelButtonText:'Cancelar',confirmButtonText:'Sí, cerrar'}).then(resultado=>{if(resultado.isConfirmed){form.dataset.confirmado='1';form.requestSubmit()}})}));
+</script>{% endblock %}

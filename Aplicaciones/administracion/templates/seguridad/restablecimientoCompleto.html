@@ -1,0 +1,7 @@
+{% extends 'seguridad/baseRecuperacion.html' %}
+{% block contenido %}
+<div class="access-icon mb-3"><i class="bi bi-check2-circle"></i></div>
+<h1 class="h3 fw-semibold">Contraseña actualizada</h1>
+<p class="text-secondary mb-4">La credencial fue reemplazada correctamente. El enlace utilizado ya no es válido.</p>
+<a class="btn btn-success w-100 fw-semibold" href="{% url 'login' %}">Iniciar sesión</a>
+{% endblock %}

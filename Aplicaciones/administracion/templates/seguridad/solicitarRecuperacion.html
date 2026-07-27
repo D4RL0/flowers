@@ -1,0 +1,13 @@
+{% extends 'seguridad/baseRecuperacion.html' %}
+{% block contenido %}
+<div class="access-icon mb-3"><i class="bi bi-key"></i></div>
+<h1 class="h3 fw-semibold">Recuperar contraseña</h1>
+<p class="text-secondary mb-4">Ingrese el nombre de la cuenta. El enlace se enviará únicamente al correo institucional autorizado.</p>
+<form method="post" autocomplete="off">
+    {% csrf_token %}
+    <label class="form-label fw-semibold" for="username">Usuario</label>
+    <input class="form-control" id="username" name="username" maxlength="150" autocomplete="username" required autofocus>
+    <button class="btn btn-success w-100 fw-semibold mt-4" type="submit"><i class="bi bi-envelope me-2"></i>Enviar enlace seguro</button>
+</form>
+<div class="small text-center mt-4"><a href="{% url 'login' %}">← Volver al inicio de sesión</a></div>
+{% endblock %}
