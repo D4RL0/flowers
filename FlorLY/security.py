@@ -38,6 +38,7 @@ SECRETARY_URL_NAMES = {
     'expedientePersonal', 'guardarPermisoPersonal', 'guardarVacacionPersonal', 'guardarDocumentoPersonal',
     'inicioLiquidacion', 'nuevaLiquidacion', 'guardarLiquidacion', 'verLiquidacion',
     'editarLiquidacion', 'procesarEdicionLiquidacion',
+    'archivoMediaProtegido',
     'logout',
 }
 

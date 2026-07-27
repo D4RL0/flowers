@@ -19,6 +19,7 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 from Aplicaciones.administracion import views as administracion_views
+from FlorLY.media_views import archivo_media_protegido
 
 urlpatterns = [
     path('', administracion_views.inicioSistema, name='inicioSistema'),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('', include('Aplicaciones.liquidaciones.urls')),
     path('', include('Aplicaciones.inventario.urls')),
     path('', include('Aplicaciones.auditoria.urls')),
+    path('media/<path:path>', archivo_media_protegido, name='archivoMediaProtegido'),
 ]
 
 if settings.DEBUG:

@@ -33,9 +33,18 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = [host.strip() for host in os.getenv(
     'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1'
 ).split(',') if host.strip()]
+if 'healthcheck.railway.app' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('healthcheck.railway.app')
 CSRF_TRUSTED_ORIGINS = [origin.strip().rstrip('/') for origin in os.getenv(
     'DJANGO_CSRF_TRUSTED_ORIGINS', ''
 ).split(',') if origin.strip()]
+RAILWAY_PUBLIC_DOMAIN = os.getenv('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if RAILWAY_PUBLIC_DOMAIN:
+    if RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    railway_origin = f'https://{RAILWAY_PUBLIC_DOMAIN}'
+    if railway_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_origin)
 
 # Valkey comparte los contadores temporales de seguridad entre todos los
 # procesos. Sin VALKEY_URL se conserva una caché local para desarrollo.
@@ -84,6 +93,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -214,9 +224,22 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = Path(
+    os.getenv('MEDIA_ROOT')
+    or os.getenv('RAILWAY_VOLUME_MOUNT_PATH')
+    or BASE_DIR / 'media'
+)
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -236,7 +259,7 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = False
 
-# Render termina HTTPS en su proxy y comunica el protocolo original mediante
+# Railway termina HTTPS en su proxy y comunica el protocolo original mediante
 # X-Forwarded-Proto. Solo se confía en este encabezado en producción.
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

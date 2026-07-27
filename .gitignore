@@ -8,6 +8,7 @@ FlorLY/local_settings.py
 __pycache__/
 *.py[cod]
 *.log
+staticfiles/
 .pytest_cache/
 .coverage
 htmlcov/
