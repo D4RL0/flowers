@@ -13,6 +13,7 @@ from FlorLY.audit_helpers import (
 audit_logger = logging.getLogger('FlorLY.audit')
 
 PUBLIC_URL_NAMES = {
+    'healthcheck',
     'login', 'recuperarCredenciales', 'recuperarCredencialesEnviado',
     'restablecerCredencial', 'restablecerCredencialCompleto',
 }

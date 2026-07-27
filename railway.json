@@ -9,7 +9,7 @@
       "python manage.py migrate --noinput"
     ],
     "startCommand": "gunicorn FlorLY.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --access-logfile - --error-logfile -",
-    "healthcheckPath": "/login/",
+    "healthcheckPath": "/health/",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3

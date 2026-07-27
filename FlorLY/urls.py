@@ -18,10 +18,16 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 from Aplicaciones.administracion import views as administracion_views
 from FlorLY.media_views import archivo_media_protegido
 
+
+def healthcheck(request):
+    return HttpResponse('ok', content_type='text/plain')
+
 urlpatterns = [
+    path('health/', healthcheck, name='healthcheck'),
     path('', administracion_views.inicioSistema, name='inicioSistema'),
     path('admin/', admin.site.urls),
     path('', include('Aplicaciones.administracion.urls')),

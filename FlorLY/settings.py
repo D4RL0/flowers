@@ -253,6 +253,9 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
 SECURE_SSL_REDIRECT = not DEBUG
+# Railway consulta este endpoint por la red interna mediante HTTP. Se excluye
+# únicamente la comprobación de salud; todo el sistema continúa forzando HTTPS.
+SECURE_REDIRECT_EXEMPT = [r'^health/$']
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
