@@ -735,7 +735,6 @@ def guardarDocumentoPersonal(request, codigo):
         personal=persona,
         nombre=request.POST['nombre'].strip(),
         archivo=archivo,
-        fecha_documento=request.POST['fecha_documento'],
         observacion=request.POST.get('observacion', '').strip(),
     )
     messages.success(request, 'Documento agregado al expediente')

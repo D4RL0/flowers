@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from FlorLY.file_security import (
     MAX_DOCUMENT_SIZE, validate_and_secure_document, validate_and_secure_image,
@@ -14,7 +15,9 @@ from FlorLY.file_security import (
 from FlorLY.security import (
     clear_login_failures, login_is_blocked, register_login_failure,
 )
-from Aplicaciones.administracion.models import Finca, Personal, Proveedor, VacacionPersonal, Variedad
+from Aplicaciones.administracion.models import (
+    DocumentoPersonal, Finca, Personal, Proveedor, VacacionPersonal, Variedad,
+)
 from Aplicaciones.liquidaciones.models import Liquidacion
 
 
@@ -186,3 +189,44 @@ class ImagenVariedadTests(TestCase):
         self.assertEqual(imagen_respuesta.status_code, 200)
         self.assertEqual(imagen_respuesta['Content-Type'], 'image/png')
         imagen_respuesta.close()
+
+
+class FechaDocumentoPersonalTests(TestCase):
+    def setUp(self):
+        self.directorio_media = TemporaryDirectory()
+        self.configuracion_media = override_settings(MEDIA_ROOT=self.directorio_media.name)
+        self.configuracion_media.enable()
+        usuario = get_user_model().objects.create_superuser(
+            username='admin_documento_fecha', password='ClaveDocumento123!'
+        )
+        finca = Finca.objects.create(
+            codigo_finca='FINDOC', nombre='FINCA DOCUMENTOS', ubicacion='CAYAMBE'
+        )
+        self.personal = Personal.objects.create(
+            codigo_personal='PERDOC', nombres='ELENA', apellidos='ROSAS VEGA',
+            cedula='1710034065', telefono='0999999999', fecha_ingreso=date(2020, 1, 1),
+            area='POSTCOSECHA', finca=finca,
+        )
+        self.client.force_login(usuario)
+
+    def tearDown(self):
+        self.configuracion_media.disable()
+        self.directorio_media.cleanup()
+
+    def test_fecha_documento_se_genera_en_servidor(self):
+        archivo = SimpleUploadedFile(
+            'contrato.pdf', b'%PDF-1.7\ncontenido', content_type='application/pdf'
+        )
+        respuesta = self.client.post(
+            reverse('guardarDocumentoPersonal', args=[self.personal.pk]),
+            {
+                'nombre': 'Contrato de trabajo', 'archivo': archivo,
+                'fecha_documento': '2000-01-01',
+            },
+        )
+
+        self.assertRedirects(respuesta, reverse('expedientePersonal', args=[self.personal.pk]))
+        documento = DocumentoPersonal.objects.get(personal=self.personal)
+        self.assertEqual(documento.fecha_documento, timezone.localdate())
+        expediente = self.client.get(reverse('expedientePersonal', args=[self.personal.pk]))
+        self.assertNotContains(expediente, 'name="fecha_documento"')
