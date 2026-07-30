@@ -244,6 +244,22 @@ def inicioSistema(request):
         'total_fincas': Finca.objects.filter(estado=True).count(),
         'total_personal': Personal.objects.filter(estado=True).count(),
     }
+    vacaciones = VacacionPersonal.objects.filter(
+        personal__estado=True,
+    ).select_related('personal').order_by(
+        'fecha_desde', 'personal__apellidos', 'personal__nombres',
+    )
+    contexto['vacaciones_dashboard'] = [
+        {
+            'id': vacacion.pk,
+            'personal': f'{vacacion.personal.nombres} {vacacion.personal.apellidos}',
+            'area': vacacion.personal.area,
+            'desde': vacacion.fecha_desde.isoformat(),
+            'hasta': vacacion.fecha_hasta.isoformat(),
+        }
+        for vacacion in vacaciones
+    ]
+    contexto['hoy_dashboard'] = ahora.date().isoformat()
     from Aplicaciones.postcosecha.models import DetalleClasificacion, DetalleRecepcion
 
     meses = []
@@ -309,12 +325,6 @@ def inicioSistema(request):
     }
     if not es_empleado:
         from Aplicaciones.liquidaciones.models import Liquidacion
-        contexto['liquidaciones_documento_pendiente'] = Liquidacion.objects.filter(
-            estado='PEND_DOCUMENTO'
-        ).select_related('proveedor').order_by('-fecha_liquidacion')[:5]
-        contexto['total_liquidaciones_documento_pendiente'] = Liquidacion.objects.filter(
-            estado='PEND_DOCUMENTO'
-        ).count()
         totales_liquidacion = Liquidacion.objects.aggregate(
             pagadas=Sum('total', filter=Q(estado='PAGADA')),
             pendientes=Sum('total', filter=Q(estado__in=('PEND_DOCUMENTO', 'PEND_PAGO'))),

@@ -10,13 +10,6 @@
     {% if es_secretaria %}<a href="{% url 'inicioLiquidacion' %}" class="btn btn-primary px-3"><i class="bi bi-receipt me-2"></i>Ver liquidaciones</a>{% else %}<a href="{% url 'nuevaRecepcion' %}" class="btn btn-primary px-3"><i class="bi bi-plus-lg me-2"></i>Nueva recepción</a>{% endif %}
 </div>
 
-{% if not es_empleado and total_liquidaciones_documento_pendiente %}
-<div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 mb-4">
-    <i class="bi bi-file-earmark-check fs-4"></i>
-    <div class="flex-grow-1"><strong>{{ total_liquidaciones_documento_pendiente }} reporte(s) mensual(es) listo(s)</strong><div>El cálculo ya fue cerrado. Entregue el reporte al proveedor y luego cargue el documento que este envíe.</div>{% for l in liquidaciones_documento_pendiente %}<a class="me-3" href="{% url 'verLiquidacion' l.codigo_liquidacion %}">{{ l.codigo_liquidacion }} · {{ l.proveedor }}</a>{% endfor %}</div>
-</div>
-{% endif %}
-
 <div class="row g-3 mb-3 dashboard-stats">
     <div class="col-sm-6 col-xl-3">
         <a href="{% url 'inicioProveedor' %}" class="stat-card stat-primary text-decoration-none">
@@ -49,28 +42,21 @@
 <div class="row g-3 mb-3">
     <div class="col-xl-8">
         <section class="card operation-card h-100">
-            <div class="card-header bg-white d-flex align-items-center justify-content-between">
-                <div><h2 class="h6 mb-1">Flujo de postcosecha</h2><small class="text-secondary">Acciones principales del proceso diario</small></div>
-                <span class="badge rounded-pill text-bg-light border">Operación</span>
-            </div>
-            <div class="card-body">
-                <div class="process-flow">
-                    {% if not es_secretaria %}<a href="{% url 'nuevaRecepcion' %}" class="process-step">
-                        <span class="process-number">01</span><span class="process-icon"><i class="bi bi-box-arrow-in-down"></i></span><span><strong>Recibir flor</strong><small>Registrar una nueva entrega</small></span><i class="bi bi-chevron-right process-arrow"></i>
-                    </a>
-                    <a href="{% url 'nuevaClasificacion' %}" class="process-step">
-                        <span class="process-number">02</span><span class="process-icon"><i class="bi bi-ui-checks-grid"></i></span><span><strong>Clasificar</strong><small>Procesar la recepción pendiente</small></span><i class="bi bi-chevron-right process-arrow"></i>
-                    </a>{% endif %}
-                    {% if not es_empleado %}
-                    <a href="{% url 'inicioLiquidacion' %}" class="process-step">
-                        <span class="process-number">03</span><span class="process-icon"><i class="bi bi-receipt"></i></span><span><strong>Liquidaciones</strong><small>Revisar reportes mensuales generados</small></span><i class="bi bi-chevron-right process-arrow"></i>
-                    </a>
-                    {% else %}
-                    <a href="{% url 'inicioClasificacion' %}" class="process-step">
-                        <span class="process-number">03</span><span class="process-icon"><i class="bi bi-clipboard-data"></i></span><span><strong>Consultar</strong><small>Revisar clasificaciones realizadas</small></span><i class="bi bi-chevron-right process-arrow"></i>
-                    </a>
-                    {% endif %}
+            <div class="card-header vacation-calendar-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div><h2 class="h6 mb-1">Calendario de vacaciones</h2><small>Personal ausente y periodos programados</small></div>
+                <div class="vacation-calendar-actions">
+                    <button class="btn btn-sm btn-light" type="button" id="calendarioAnterior" title="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-soft" type="button" id="calendarioHoy">Hoy</button>
+                    <button class="btn btn-sm btn-light" type="button" id="calendarioSiguiente" title="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
                 </div>
+            </div>
+            <div class="card-body vacation-calendar-body">
+                <div class="d-flex align-items-center justify-content-between mb-3 gap-2">
+                    <h3 class="vacation-calendar-title mb-0" id="calendarioTitulo"></h3>
+                    <span class="vacation-calendar-counter" id="calendarioContador"></span>
+                </div>
+                <div class="vacation-calendar-weekdays" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span></div>
+                <div class="vacation-calendar-grid" id="calendarioVacaciones" aria-label="Calendario mensual de vacaciones"></div>
             </div>
         </section>
     </div>
@@ -119,25 +105,60 @@
     </div>
 </section>
 {{ graficos_dashboard|json_script:"datosGraficosDashboard" }}
+{{ vacaciones_dashboard|json_script:"datosVacacionesDashboard" }}
 {% endblock %}
 
 {% block estilos %}
 <style>
 .chart-body{position:relative;min-height:310px}.dashboard-charts .card{overflow:hidden}.dashboard-charts .card-header{min-height:68px}
-@media(max-width:575px){.chart-body{min-height:270px;padding:14px}}
+.vacation-calendar-header{position:relative;isolation:isolate;overflow:hidden;color:#fff;background:linear-gradient(135deg,#38ad5b 0%,#69c982 100%);border-bottom:0}.vacation-calendar-header::before,.vacation-calendar-header::after{position:absolute;z-index:-1;border-radius:50%;background:rgba(255,255,255,.14);content:""}.vacation-calendar-header::before{width:130px;height:130px;top:-82px;right:105px}.vacation-calendar-header::after{width:82px;height:82px;right:24px;bottom:-56px}.vacation-calendar-header small{color:rgba(255,255,255,.9)}.vacation-calendar-header .btn{color:#fff;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.5);backdrop-filter:blur(2px)}.vacation-calendar-header .btn:hover,.vacation-calendar-header .btn:focus{color:#28613a;background:#fff;border-color:#fff}
+.vacation-calendar-actions{display:flex;align-items:center;gap:5px}.vacation-calendar-actions .btn{height:32px;min-width:34px;padding:4px 9px}.vacation-calendar-body{padding:18px}.vacation-calendar-title{font-size:1rem;font-weight:700;text-transform:capitalize}.vacation-calendar-counter{font-size:.72rem;color:#68766f;background:#f1f6f3;border:1px solid #dfe9e3;border-radius:999px;padding:4px 9px}.vacation-calendar-weekdays,.vacation-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}.vacation-calendar-weekdays{border:1px solid #e3e9e5;border-bottom:0;border-radius:10px 10px 0 0;background:#f7f9f8}.vacation-calendar-weekdays span{text-align:center;padding:7px 2px;color:#748079;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.vacation-day{position:relative;min-width:0;min-height:84px;padding:6px 5px;border-right:1px solid #e3e9e5;border-bottom:1px solid #e3e9e5;background:#fff}.vacation-day:nth-child(7n+1){border-left:1px solid #e3e9e5}.vacation-day.is-outside{background:#fafbfa}.vacation-day.is-today{background:#f4faf6;box-shadow:inset 0 0 0 1px #62ad79}.vacation-day-number{display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin:0 0 4px auto;border-radius:50%;font-size:.7rem;font-weight:600;color:#39483f}.is-outside .vacation-day-number{color:#afb7b2}.is-today .vacation-day-number{background:#4f9b68;color:#fff}.vacation-event{display:block;overflow:hidden;margin-top:3px;padding:3px 5px;border-left:3px solid #4f9b68;border-radius:4px;background:#e8f5ec;color:#285b39;font-size:.62rem;font-weight:600;line-height:1.25;text-overflow:ellipsis;white-space:nowrap;cursor:default}.vacation-event[data-color="1"]{border-color:#4e7ca8;background:#eaf1f8;color:#315978}.vacation-event[data-color="2"]{border-color:#b18239;background:#fbf2df;color:#75551f}.vacation-event[data-color="3"]{border-color:#9068aa;background:#f2ecf7;color:#634776}.vacation-more{display:block;margin-top:3px;color:#65736b;font-size:.61rem;font-weight:600}
+@media(max-width:767px){.vacation-calendar-body{padding:12px}.vacation-day{min-height:66px;padding:4px 3px}.vacation-event{padding:2px 3px;border-left-width:2px;font-size:.55rem}.vacation-calendar-weekdays span{font-size:.58rem}.vacation-day-number{width:19px;height:19px;font-size:.62rem}}
+@media(max-width:575px){.chart-body{min-height:270px;padding:14px}.vacation-event{height:7px;padding:0;border:0;border-radius:5px;background:#65a879;color:transparent}.vacation-event[data-color="1"]{background:#5f88ae}.vacation-event[data-color="2"]{background:#c09247}.vacation-event[data-color="3"]{background:#9976b0}.vacation-more{font-size:.52rem}}
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
+const vacacionesCalendario=JSON.parse(document.getElementById('datosVacacionesDashboard').textContent);
+const fechaHoyCalendario=new Date('{{ hoy_dashboard }}T12:00:00');
+let mesCalendario=new Date(fechaHoyCalendario.getFullYear(),fechaHoyCalendario.getMonth(),1);
+const fechaISO=fecha=>`${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}-${String(fecha.getDate()).padStart(2,'0')}`;
+const nombreCorto=nombre=>{const partes=nombre.trim().split(/\s+/);return partes.length>1?`${partes[0]} ${partes[partes.length-1]}`:nombre};
+function renderCalendarioVacaciones(){
+    const grid=document.getElementById('calendarioVacaciones');grid.innerHTML='';
+    document.getElementById('calendarioTitulo').textContent=new Intl.DateTimeFormat('es-EC',{month:'long',year:'numeric'}).format(mesCalendario);
+    const inicioMes=new Date(mesCalendario.getFullYear(),mesCalendario.getMonth(),1);
+    const finMes=new Date(mesCalendario.getFullYear(),mesCalendario.getMonth()+1,0);
+    const inicioGrid=new Date(inicioMes);inicioGrid.setDate(inicioGrid.getDate()-((inicioGrid.getDay()+6)%7));
+    const finGrid=new Date(finMes);finGrid.setDate(finGrid.getDate()+(6-((finGrid.getDay()+6)%7)));
+    const eventosMes=vacacionesCalendario.filter(v=>v.desde<=fechaISO(finMes)&&v.hasta>=fechaISO(inicioMes));
+    const personasMes=new Set(eventosMes.map(v=>v.personal));
+    document.getElementById('calendarioContador').textContent=personasMes.size?`${personasMes.size} persona${personasMes.size===1?'':'s'}`:'Sin vacaciones';
+    for(let dia=new Date(inicioGrid);dia<=finGrid;dia.setDate(dia.getDate()+1)){
+        const actual=new Date(dia),iso=fechaISO(actual),celda=document.createElement('div');
+        celda.className='vacation-day';
+        if(actual.getMonth()!==mesCalendario.getMonth())celda.classList.add('is-outside');
+        if(iso===fechaISO(fechaHoyCalendario))celda.classList.add('is-today');
+        celda.innerHTML=`<span class="vacation-day-number">${actual.getDate()}</span>`;
+        const eventos=vacacionesCalendario.filter(v=>v.desde<=iso&&v.hasta>=iso);
+        eventos.slice(0,2).forEach(v=>{const evento=document.createElement('span');evento.className='vacation-event';evento.dataset.color=String(v.id%4);evento.textContent=nombreCorto(v.personal);evento.title=`${v.personal} · ${v.area} · ${v.desde} al ${v.hasta}`;celda.appendChild(evento)});
+        if(eventos.length>2){const mas=document.createElement('span');mas.className='vacation-more';mas.textContent=`+${eventos.length-2} más`;celda.appendChild(mas)}
+        grid.appendChild(celda);
+    }
+}
+document.getElementById('calendarioAnterior').addEventListener('click',()=>{mesCalendario=new Date(mesCalendario.getFullYear(),mesCalendario.getMonth()-1,1);renderCalendarioVacaciones()});
+document.getElementById('calendarioSiguiente').addEventListener('click',()=>{mesCalendario=new Date(mesCalendario.getFullYear(),mesCalendario.getMonth()+1,1);renderCalendarioVacaciones()});
+document.getElementById('calendarioHoy').addEventListener('click',()=>{mesCalendario=new Date(fechaHoyCalendario.getFullYear(),fechaHoyCalendario.getMonth(),1);renderCalendarioVacaciones()});
+renderCalendarioVacaciones();
 const datosGraficos=JSON.parse(document.getElementById('datosGraficosDashboard').textContent);
 Chart.defaults.font.family='Poppins, sans-serif';Chart.defaults.color='#697078';
 const formatoNumero=valor=>new Intl.NumberFormat('es-EC').format(valor);
 const opcionesBase={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:18}},tooltip:{callbacks:{label:context=>`${context.dataset.label||context.label}: ${formatoNumero(context.parsed.y??context.parsed)}`}}}};
-new Chart(document.getElementById('graficoTendencia'),{type:'bar',data:{labels:datosGraficos.tendencia.etiquetas,datasets:[{label:'Recibidos',data:datosGraficos.tendencia.recibidos,backgroundColor:'rgba(79,138,101,.3)',borderColor:'#4f8a65',borderWidth:1,borderRadius:5},{label:'Clasificados',data:datosGraficos.tendencia.clasificados,backgroundColor:'rgba(63,82,74,.76)',borderColor:'#3f524a',borderWidth:1,borderRadius:5}]},options:{...opcionesBase,scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{callback:formatoNumero},grid:{color:'rgba(60,70,65,.07)'}}}}});
-new Chart(document.getElementById('graficoCalidad'),{type:'doughnut',data:{labels:datosGraficos.calidad.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.calidad.valores,backgroundColor:['#4f8a65','#88a094','#d5a84b'],borderColor:'#fff',borderWidth:3,hoverOffset:7}]},options:{...opcionesBase,cutout:'62%'}});
-new Chart(document.getElementById('graficoOrigen'),{type:'pie',data:{labels:datosGraficos.origen.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.origen.valores,backgroundColor:['#4f8a65','#59656b'],borderColor:'#fff',borderWidth:3,hoverOffset:7}]},options:opcionesBase});
-if(datosGraficos.liquidaciones){const opcionesDinero={...opcionesBase,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{callback:valor=>`$${formatoNumero(valor)}`},grid:{color:'rgba(60,70,65,.07)'}},y:{grid:{display:false}}},plugins:{...opcionesBase.plugins,legend:{display:false},tooltip:{callbacks:{label:context=>`$${new Intl.NumberFormat('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}).format(context.parsed.x)}`}}}};new Chart(document.getElementById('graficoLiquidaciones'),{type:'bar',data:{labels:datosGraficos.liquidaciones.etiquetas,datasets:[{label:'Valor',data:datosGraficos.liquidaciones.valores,backgroundColor:['#4f8a65','#d5a84b'],borderRadius:7,barThickness:38}]},options:opcionesDinero})}
+new Chart(document.getElementById('graficoTendencia'),{type:'bar',data:{labels:datosGraficos.tendencia.etiquetas,datasets:[{label:'Recibidos',data:datosGraficos.tendencia.recibidos,backgroundColor:'rgba(55,177,93,.72)',borderColor:'#2f9f55',borderWidth:1,borderRadius:7},{label:'Clasificados',data:datosGraficos.tendencia.clasificados,backgroundColor:'rgba(67,143,199,.72)',borderColor:'#438fc7',borderWidth:1,borderRadius:7}]},options:{...opcionesBase,scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{callback:formatoNumero},grid:{color:'rgba(60,70,65,.07)'}}}}});
+new Chart(document.getElementById('graficoCalidad'),{type:'doughnut',data:{labels:datosGraficos.calidad.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.calidad.valores,backgroundColor:['#39ad61','#438fc7','#efb647'],borderColor:'#fff',borderWidth:4,hoverOffset:9}]},options:{...opcionesBase,cutout:'62%'}});
+new Chart(document.getElementById('graficoOrigen'),{type:'pie',data:{labels:datosGraficos.origen.etiquetas,datasets:[{label:'Tallos',data:datosGraficos.origen.valores,backgroundColor:['#d94f78','#49b96a'],borderColor:'#fff',borderWidth:4,hoverOffset:9}]},options:opcionesBase});
+if(datosGraficos.liquidaciones){const opcionesDinero={...opcionesBase,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{callback:valor=>`$${formatoNumero(valor)}`},grid:{color:'rgba(60,70,65,.07)'}},y:{grid:{display:false}}},plugins:{...opcionesBase.plugins,legend:{display:false},tooltip:{callbacks:{label:context=>`$${new Intl.NumberFormat('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}).format(context.parsed.x)}`}}}};new Chart(document.getElementById('graficoLiquidaciones'),{type:'bar',data:{labels:datosGraficos.liquidaciones.etiquetas,datasets:[{label:'Valor',data:datosGraficos.liquidaciones.valores,backgroundColor:['#3caf61','#efb647'],borderRadius:9,barThickness:38}]},options:opcionesDinero})}
 </script>
 {% endblock %}

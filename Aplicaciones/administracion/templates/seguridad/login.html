@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -5,36 +6,42 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Ingresar | L.Y Flowers</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body{min-height:100vh;display:grid;place-items:center;background:#f4f9f5;font-family:Poppins,sans-serif}
-        .login-card{width:min(420px,calc(100% - 32px));background:#fff;border:1px solid #dfebe2;border-radius:12px;padding:34px;box-shadow:0 8px 30px rgba(45,92,58,.09)}
-        .logo{width:52px;height:52px;display:grid;place-items:center;border-radius:12px;background:#edf8f0;color:#58ad72;font-size:25px}
-        .form-control{padding:.75rem;border-color:#dce6df;border-radius:7px}
-        .form-control:focus{border-color:#8bcca0;box-shadow:0 0 0 .2rem rgba(88,173,114,.14)}
-        .btn{padding:.75rem;border-radius:7px}.btn-success{background:#58ad72;border-color:#58ad72}.btn-success:hover{background:#48975f;border-color:#48975f}
+        :root{--login-green:#278848;--login-light:#64c77d;--login-ink:#173322}
+        *{box-sizing:border-box}
+        body{min-height:100vh;margin:0;display:flex;align-items:center;padding:42px clamp(24px,7vw,110px);overflow-x:hidden;color:var(--login-ink);background-image:linear-gradient(90deg,rgba(8,31,17,.42) 0%,rgba(9,36,19,.18) 46%,rgba(4,20,10,.08) 100%),url('{% static "img/login-rosas-lyflowers.png" %}');background-position:center;background-size:cover;background-attachment:fixed;font-family:Poppins,sans-serif}
+        .login-card{position:relative;width:min(450px,100%);padding:42px;border:1px solid rgba(255,255,255,.64);border-radius:24px;background:rgba(250,255,251,.78);box-shadow:0 28px 75px rgba(5,28,13,.28),inset 0 1px rgba(255,255,255,.7);backdrop-filter:blur(18px) saturate(125%);-webkit-backdrop-filter:blur(18px) saturate(125%)}
+        .brand-row{display:flex;align-items:center;gap:13px;margin-bottom:25px}.logo{width:55px;height:55px;display:grid;flex:0 0 auto;place-items:center;border-radius:17px;color:#fff;background:linear-gradient(135deg,#38ad5b,#69c982);box-shadow:0 10px 24px rgba(39,136,72,.28);font-size:25px}.brand-copy strong{display:block;color:#21462e;font:700 20px 'Playfair Display',serif}.brand-copy small{display:block;margin-top:1px;color:#587362;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
+        h1{margin-bottom:8px;color:#142d1c;font-family:'Playfair Display',serif;font-size:clamp(1.85rem,4vw,2.25rem);letter-spacing:-.025em}.intro{max-width:350px;margin-bottom:28px;color:#52695a;font-size:.91rem;line-height:1.65}.form-label{margin-bottom:8px;color:#294b35;font-size:.78rem;font-weight:700;letter-spacing:.035em}.form-control{min-height:50px;padding:.78rem 1rem;color:#183421;background:rgba(255,255,255,.8);border:1px solid rgba(69,112,80,.27);border-radius:12px}.form-control:focus{color:#183421;background:#fff;border-color:#55b971;box-shadow:0 0 0 .22rem rgba(56,173,91,.14)}.input-group .form-control{border-radius:12px 0 0 12px}.password-toggle{width:50px;color:#41634c!important;background:rgba(255,255,255,.8)!important;border-color:rgba(69,112,80,.27)!important;border-radius:0 12px 12px 0!important}.password-toggle:hover{color:#267943!important;background:#fff!important}
+        .login-submit{min-height:52px;margin-top:4px;border:0;border-radius:12px;color:#fff;background:linear-gradient(135deg,#38ad5b,#69c982);box-shadow:0 11px 24px rgba(56,173,91,.25);font-weight:700;transition:transform .2s,box-shadow .2s}.login-submit:hover,.login-submit:focus{color:#fff;background:linear-gradient(135deg,#309b50,#55b970);box-shadow:0 14px 28px rgba(48,155,80,.3);transform:translateY(-1px)}.recovery-link{color:#287d43;font-weight:600}.recovery-link:hover{color:#185f30}.security-note{padding-top:20px;border-top:1px solid rgba(56,91,65,.13);color:#5c7162!important;font-size:.73rem!important}
+        @media(max-width:700px){body{align-items:flex-end;padding:20px;background-position:58% center;background-attachment:scroll}.login-card{padding:30px 25px;border-radius:21px;background:rgba(251,255,252,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}.brand-row{margin-bottom:20px}.intro{margin-bottom:22px}}
+        @media(max-height:700px) and (min-width:701px){body{padding-block:22px}.login-card{padding:29px 36px}.brand-row{margin-bottom:16px}.intro{margin-bottom:18px}.security-note{padding-top:13px;margin-top:16px!important}}
     </style>
 </head>
 <body>
 <main class="login-card">
-    <div class="logo mb-3"><i class="bi bi-flower1"></i></div>
-    <h1 class="h3 fw-semibold">Ingresar a L.Y Flowers</h1>
-    <p class="text-secondary mb-4">Utilice únicamente sus credenciales autorizadas.</p>
+    <div class="brand-row">
+        <div class="logo"><i class="bi bi-flower1"></i></div>
+        <div class="brand-copy"><strong>L.Y Flowers</strong><small>Gestión florícola</small></div>
+    </div>
+    <h1>Bienvenido</h1>
+    <p class="intro">Ingrese con sus credenciales autorizadas para administrar las operaciones de L.Y Flowers.</p>
     <form method="post" autocomplete="off">
         {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-        <div class="mb-3"><label class="form-label fw-semibold">Usuario</label><input class="form-control" name="username" maxlength="150" autocomplete="username" required autofocus></div>
-        <div class="mb-4"><label class="form-label fw-semibold">Contraseña</label><div class="input-group"><input class="form-control" id="password" type="password" name="password" autocomplete="current-password" required><button class="btn btn-outline-secondary bg-white text-dark border" type="button" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password'"><i class="bi bi-eye"></i></button></div></div>
-        <button class="btn btn-success w-100 fw-semibold">Ingresar de forma segura</button>
+        <div class="mb-3"><label class="form-label" for="username">USUARIO</label><input class="form-control" id="username" name="username" maxlength="150" autocomplete="username" placeholder="Ingrese su usuario" required autofocus></div>
+        <div class="mb-4"><label class="form-label" for="password">CONTRASEÑA</label><div class="input-group"><input class="form-control" id="password" type="password" name="password" autocomplete="current-password" placeholder="Ingrese su contraseña" required><button class="btn password-toggle" type="button" aria-label="Mostrar u ocultar contraseña" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password'"><i class="bi bi-eye"></i></button></div></div>
+        <button class="btn login-submit w-100" type="submit">Ingresar de forma segura <i class="bi bi-arrow-right ms-2"></i></button>
     </form>
-    <div class="text-center mt-3"><a class="small text-decoration-none" style="color:#438d58" href="{% url 'recuperarCredenciales' %}">¿Olvidó su contraseña?</a></div>
-    <div class="text-secondary small text-center mt-4"><i class="bi bi-shield-lock me-1"></i>La sesión y los intentos de acceso están protegidos.</div>
+    <div class="text-center mt-3"><a class="small recovery-link text-decoration-none" href="{% url 'recuperarCredenciales' %}">¿Olvidó su contraseña?</a></div>
+    <div class="security-note text-center mt-4"><i class="bi bi-shield-check me-1"></i> La sesión y los intentos de acceso están protegidos.</div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 const mensajes=[{% for message in messages %}{texto:'{{ message|escapejs }}',tipo:'{{ message.tags|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}];
-(async()=>{for(const mensaje of mensajes){await Swal.fire({icon:mensaje.tipo.includes('error')?'error':'info',title:mensaje.tipo.includes('error')?'Acceso no permitido':'Información',text:mensaje.texto,confirmButtonColor:'#58ad72',heightAuto:false,scrollbarPadding:false,allowOutsideClick:false})}})();
+(async()=>{for(const mensaje of mensajes){await Swal.fire({icon:mensaje.tipo.includes('error')?'error':'info',title:mensaje.tipo.includes('error')?'Acceso no permitido':'Información',text:mensaje.texto,confirmButtonColor:'#38ad5b',heightAuto:false,scrollbarPadding:false,allowOutsideClick:false})}})();
 </script>
 </body>
 </html>

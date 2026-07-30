@@ -63,10 +63,30 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="dropdown">
-                    <button class="btn btn-light btn-icon rounded-circle position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones"><i class="bi bi-bell"></i></button>
+                    <button class="btn btn-light btn-icon rounded-circle position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+                        <i class="bi bi-bell"></i>
+                        {% if total_notificaciones_reportes %}<span class="notification-count">{{ total_notificaciones_reportes }}</span>{% endif %}
+                    </button>
                     <div class="dropdown-menu dropdown-menu-end notification-menu p-0">
                         <div class="px-3 py-3 border-bottom"><div class="fw-semibold">Notificaciones</div><small class="text-secondary">Actividad importante del sistema</small></div>
-                        <div class="notification-empty"><span class="notification-icon"><i class="bi bi-bell-check"></i></span><div class="fw-semibold mt-2">Todo está al día</div><small class="text-secondary">No hay avisos pendientes.</small></div>
+                        {% if notificaciones_reportes %}
+                        <div class="notification-list">
+                            {% for reporte in notificaciones_reportes %}
+                            <a class="notification-report" href="{% url 'verLiquidacion' reporte.codigo_liquidacion %}">
+                                <span class="notification-report-icon"><i class="bi bi-file-earmark-text"></i></span>
+                                <span class="notification-report-copy">
+                                    <strong>Reporte mensual listo</strong>
+                                    <small>{{ reporte.codigo_liquidacion }} · {{ reporte.proveedor }}</small>
+                                    <span>{{ reporte.fecha_liquidacion|date:'d/m/Y' }} · Total ${{ reporte.total|floatformat:2 }}</span>
+                                </span>
+                                <i class="bi bi-chevron-right notification-report-arrow"></i>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <a class="notification-footer" href="{% url 'inicioLiquidacion' %}">Ver todas las liquidaciones <i class="bi bi-arrow-right"></i></a>
+                        {% else %}
+                        <div class="notification-empty"><span class="notification-icon"><i class="bi bi-bell-check"></i></span><div class="fw-semibold mt-2">Todo está al día</div><small class="text-secondary">No hay reportes mensuales pendientes.</small></div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="dropdown">

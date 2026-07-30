@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
@@ -9,6 +11,8 @@ from FlorLY.file_security import MAX_DOCUMENT_SIZE, validate_and_secure_document
 from FlorLY.security import (
     clear_login_failures, login_is_blocked, register_login_failure,
 )
+from Aplicaciones.administracion.models import Finca, Personal, Proveedor, VacacionPersonal
+from Aplicaciones.liquidaciones.models import Liquidacion
 
 
 class SeguridadArchivosTests(SimpleTestCase):
@@ -81,3 +85,53 @@ class GraficosDashboardTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertNotContains(respuesta, '<canvas id="graficoLiquidaciones"', html=False)
         self.assertNotIn('liquidaciones', respuesta.context['graficos_dashboard'])
+
+    def test_dashboard_muestra_calendario_y_vacaciones_registradas(self):
+        usuario = get_user_model().objects.create_superuser(
+            username='admin_calendario', password='ClaveCalendario123!'
+        )
+        finca = Finca.objects.create(
+            codigo_finca='FINTEST', nombre='FINCA PRUEBA', ubicacion='CAYAMBE'
+        )
+        personal = Personal.objects.create(
+            codigo_personal='PERTEST', nombres='ANA MARIA', apellidos='LOPEZ VEGA',
+            cedula='1710034065', telefono='0999999999', fecha_ingreso=date(2020, 1, 1),
+            area='POSTCOSECHA', finca=finca,
+        )
+        VacacionPersonal.objects.create(
+            personal=personal, fecha_desde=date(2026, 7, 20),
+            fecha_hasta=date(2026, 7, 31), dias_tomados=12,
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(reverse('inicioSistema'))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'Calendario de vacaciones')
+        self.assertContains(respuesta, 'datosVacacionesDashboard')
+        self.assertNotContains(respuesta, 'Flujo de postcosecha')
+        self.assertEqual(respuesta.context['vacaciones_dashboard'][0]['personal'], 'ANA MARIA LOPEZ VEGA')
+
+    def test_campana_muestra_reporte_mensual_pendiente(self):
+        usuario = get_user_model().objects.create_superuser(
+            username='admin_notificaciones', password='ClaveNotificacion123!'
+        )
+        proveedor = Proveedor.objects.create(
+            codigo_proveedor='PRONOT', nombres='ROSA', apellidos='FLORES',
+            cedula_ruc='1710034065', telefono='0999999999',
+        )
+        Liquidacion.objects.create(
+            codigo_liquidacion='LIQNOT001', proveedor=proveedor,
+            fecha_inicio=date(2026, 6, 1), fecha_fin=date(2026, 6, 30),
+            fecha_liquidacion=date(2026, 7, 1), total='148.50',
+            estado='PEND_DOCUMENTO',
+        )
+        self.client.force_login(usuario)
+
+        respuesta = self.client.get(reverse('inicioSistema'))
+
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'Reporte mensual listo')
+        self.assertContains(respuesta, 'LIQNOT001')
+        self.assertContains(respuesta, '$148,50')
+        self.assertEqual(respuesta.context['total_notificaciones_reportes'], 1)

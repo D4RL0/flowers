@@ -140,12 +140,24 @@ class RoleAccessMiddleware:
 
 def security_context(request):
     role = user_role(request.user) if request.user.is_authenticated else None
-    return {
+    context = {
         'rol_actual': role,
         'es_administrador': role == 'ADMINISTRADOR',
         'es_secretaria': role == 'SECRETARIA',
         'es_empleado': role == 'EMPLEADO',
     }
+    if request.user.is_authenticated and role in ('ADMINISTRADOR', 'SECRETARIA'):
+        from Aplicaciones.liquidaciones.models import Liquidacion
+
+        reportes_pendientes = Liquidacion.objects.filter(
+            estado='PEND_DOCUMENTO',
+        ).select_related('proveedor').order_by('-fecha_liquidacion', '-codigo_liquidacion')
+        context['total_notificaciones_reportes'] = reportes_pendientes.count()
+        context['notificaciones_reportes'] = reportes_pendientes[:5]
+    else:
+        context['total_notificaciones_reportes'] = 0
+        context['notificaciones_reportes'] = ()
+    return context
 
 
 def login_cache_key(request, username):
