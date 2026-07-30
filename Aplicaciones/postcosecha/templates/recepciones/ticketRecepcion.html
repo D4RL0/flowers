@@ -17,7 +17,7 @@
     {% for d in recepcion.detallerecepcion_set.all %}<tr><td>{{ d.cantidad_mallas }}M × {{ d.tallos_por_malla }}</td><td>{{ d.variedad.nombre|upper }}</td><td class="text-end">{{ d.total_tallos }}</td></tr>{% endfor %}
   </tbody><tfoot><tr><th colspan="2">TOTAL TALLOS</th><th class="text-end">{{ recepcion.total_tallos }}</th></tr></tfoot></table>
   <div class="signature-space"></div><div class="signature text-center"><strong>FIRMA PROVEEDOR</strong><br>{% if recepcion.proveedor %}{{ recepcion.proveedor|upper }}{% else %}{{ recepcion.finca.nombre|upper }}{% endif %}</div>
-  <div class="signature mt-4 text-center"><strong>FIRMA EMPRESA</strong><br>L.Y FLOWERS</div>
+  <div class="signature mt-4 text-center"><strong>SELLO EMPRESA</strong><br>L.Y FLOWERS</div>
 </article>
 <style>.receipt-ticket{width:400px;max-width:100%;border:1px solid #ddd;font-family:Arial,sans-serif}.ticket-table th,.ticket-table td{padding:8px 6px;border-bottom:1px dotted #999}.ticket-table th{font-size:.85rem;color:#666}.signature-space{height:90px}.signature{border-top:1px solid #222;padding-top:6px}@media print{body *{visibility:hidden}.receipt-ticket,.receipt-ticket *{visibility:visible}.receipt-ticket{position:absolute;left:0;top:0;width:80mm;border:0;padding:5mm!important}.ticket-actions,.sidebar,.navbar{display:none!important}}</style>
 {% endblock %}
