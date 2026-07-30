@@ -32,6 +32,7 @@ urlpatterns = [
     path('variedades/guardar/', views.guardarVariedad, name='guardarVariedad'),
     path('variedades/editar/<str:codigo>/', views.editarVariedad, name='editarVariedad'),
     path('variedades/procesar-edicion/', views.procesarEdicionVariedad, name='procesarEdicionVariedad'),
+    path('variedades/imagen/<str:codigo>/', views.imagenVariedad, name='imagenVariedad'),
     path('variedades/estado/<str:codigo>/', views.cambiarEstadoVariedad, name='cambiarEstadoVariedad'),
     path('fincas/', views.inicioFinca, name='inicioFinca'),
     path('fincas/nueva/', views.nuevaFinca, name='nuevaFinca'),

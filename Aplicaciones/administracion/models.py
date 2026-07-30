@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from .validators import validar_cedula_ecuatoriana, validar_documento_ecuatoriano, validar_telefono_ecuatoriano
-from FlorLY.file_security import validate_document
+from FlorLY.file_security import validate_document, validate_image
 
 
 class Proveedor(models.Model):
@@ -34,6 +34,12 @@ class Proveedor(models.Model):
 class Variedad(models.Model):
     codigo_variedad = models.CharField(max_length=10, primary_key=True)
     nombre = models.CharField(max_length=100, unique=True)
+    imagen = models.FileField(
+        upload_to='variedades/imagenes/',
+        null=True,
+        blank=True,
+        validators=[validate_image],
+    )
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)

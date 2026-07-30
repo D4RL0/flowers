@@ -1,17 +1,20 @@
 from datetime import date
+from tempfile import TemporaryDirectory
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from FlorLY.file_security import MAX_DOCUMENT_SIZE, validate_and_secure_document
+from FlorLY.file_security import (
+    MAX_DOCUMENT_SIZE, validate_and_secure_document, validate_and_secure_image,
+)
 from FlorLY.security import (
     clear_login_failures, login_is_blocked, register_login_failure,
 )
-from Aplicaciones.administracion.models import Finca, Personal, Proveedor, VacacionPersonal
+from Aplicaciones.administracion.models import Finca, Personal, Proveedor, VacacionPersonal, Variedad
 from Aplicaciones.liquidaciones.models import Liquidacion
 
 
@@ -43,6 +46,20 @@ class SeguridadArchivosTests(SimpleTestCase):
         )
         with self.assertRaises(ValidationError):
             validate_and_secure_document(archivo)
+
+    def test_acepta_imagen_png_y_protege_su_nombre(self):
+        imagen = SimpleUploadedFile(
+            'rosa freedom.png', b'\x89PNG\r\n\x1a\ncontenido', content_type='image/png'
+        )
+        validate_and_secure_image(imagen)
+        self.assertRegex(imagen.name, r'^[0-9a-f]{32}\.png$')
+
+    def test_rechaza_pdf_disfrazado_de_imagen(self):
+        imagen = SimpleUploadedFile(
+            'rosa.jpg', b'%PDF-1.7\ncontenido', content_type='image/jpeg'
+        )
+        with self.assertRaises(ValidationError):
+            validate_and_secure_image(imagen)
 
 
 class LimiteIntentosAccesoTests(SimpleTestCase):
@@ -135,3 +152,37 @@ class GraficosDashboardTests(TestCase):
         self.assertContains(respuesta, 'LIQNOT001')
         self.assertContains(respuesta, '$148,50')
         self.assertEqual(respuesta.context['total_notificaciones_reportes'], 1)
+
+
+class ImagenVariedadTests(TestCase):
+    def setUp(self):
+        self.directorio_media = TemporaryDirectory()
+        self.configuracion_media = override_settings(MEDIA_ROOT=self.directorio_media.name)
+        self.configuracion_media.enable()
+        usuario = get_user_model().objects.create_superuser(
+            username='admin_variedad_imagen', password='ClaveImagen123!'
+        )
+        self.client.force_login(usuario)
+
+    def tearDown(self):
+        self.configuracion_media.disable()
+        self.directorio_media.cleanup()
+
+    def test_registra_y_muestra_imagen_de_variedad(self):
+        imagen = SimpleUploadedFile(
+            'freedom.png', b'\x89PNG\r\n\x1a\ncontenido', content_type='image/png'
+        )
+
+        respuesta = self.client.post(reverse('guardarVariedad'), {
+            'nombre': 'Freedom', 'imagen': imagen,
+        })
+
+        self.assertRedirects(respuesta, reverse('inicioVariedad'))
+        variedad = Variedad.objects.get(nombre='FREEDOM')
+        self.assertRegex(variedad.imagen.name, r'^variedades/imagenes/[0-9a-f]{32}\.png$')
+        listado = self.client.get(reverse('inicioVariedad'))
+        self.assertContains(listado, reverse('imagenVariedad', args=[variedad.pk]))
+        imagen_respuesta = self.client.get(reverse('imagenVariedad', args=[variedad.pk]))
+        self.assertEqual(imagen_respuesta.status_code, 200)
+        self.assertEqual(imagen_respuesta['Content-Type'], 'image/png')
+        imagen_respuesta.close()

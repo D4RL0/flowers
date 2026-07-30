@@ -10,6 +10,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db.models import Q, Sum
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
@@ -29,7 +30,7 @@ from FlorLY.security import (
     clear_login_failures, login_is_blocked, register_login_failure,
     security_cache_get, security_cache_set,
 )
-from FlorLY.file_security import validate_and_secure_document
+from FlorLY.file_security import validate_and_secure_document, validate_and_secure_image
 
 User = get_user_model()
 ROLES_SISTEMA = ('Administrador', 'Secretaria', 'Empleado')
@@ -437,12 +438,22 @@ def nuevaVariedad(request):
 
 @require_POST
 def guardarVariedad(request):
+    imagen = request.FILES.get('imagen')
+    if not imagen:
+        messages.error(request, 'Seleccione una imagen JPG o PNG para la variedad')
+        return redirect('nuevaVariedad')
+    try:
+        validate_and_secure_image(imagen)
+    except ValidationError as error:
+        messages.error(request, ' '.join(error.messages))
+        return redirect('nuevaVariedad')
     Variedad.objects.create(
         codigo_variedad=_generar_codigo(Variedad, 'codigo_variedad', 'VAR'),
         nombre=request.POST['nombre'].strip().upper(),
+        imagen=imagen,
     )
     messages.success(request, 'Variedad guardada exitosamente')
-    return redirect('/variedades')
+    return redirect('inicioVariedad')
 
 
 def editarVariedad(request, codigo):
@@ -455,9 +466,36 @@ def editarVariedad(request, codigo):
 def procesarEdicionVariedad(request):
     variedad = get_object_or_404(Variedad, pk=request.POST['codigo_variedad'])
     variedad.nombre = request.POST['nombre'].strip().upper()
+    nueva_imagen = request.FILES.get('imagen')
+    imagen_anterior = variedad.imagen.name if variedad.imagen else None
+    if nueva_imagen:
+        try:
+            validate_and_secure_image(nueva_imagen)
+        except ValidationError as error:
+            messages.error(request, ' '.join(error.messages))
+            return redirect('editarVariedad', codigo=variedad.pk)
+        variedad.imagen = nueva_imagen
+    elif not variedad.imagen:
+        messages.error(request, 'Seleccione una imagen JPG o PNG para la variedad')
+        return redirect('editarVariedad', codigo=variedad.pk)
     variedad.save()
+    if nueva_imagen and imagen_anterior and imagen_anterior != variedad.imagen.name:
+        variedad.imagen.storage.delete(imagen_anterior)
     messages.success(request, 'Variedad actualizada exitosamente')
-    return redirect('/variedades')
+    return redirect('inicioVariedad')
+
+
+def imagenVariedad(request, codigo):
+    variedad = get_object_or_404(Variedad, pk=codigo)
+    if not variedad.imagen:
+        raise Http404('Imagen no encontrada')
+    try:
+        return FileResponse(
+            variedad.imagen.open('rb'),
+            content_type='image/png' if variedad.imagen.name.lower().endswith('.png') else 'image/jpeg',
+        )
+    except FileNotFoundError as error:
+        raise Http404('Imagen no encontrada') from error
 
 
 @require_POST
@@ -466,7 +504,7 @@ def cambiarEstadoVariedad(request, codigo):
     variedad.estado = not variedad.estado
     variedad.save()
     messages.success(request, 'Estado de la variedad actualizado exitosamente')
-    return redirect('/variedades')
+    return redirect('inicioVariedad')
 
 
 # Fincas

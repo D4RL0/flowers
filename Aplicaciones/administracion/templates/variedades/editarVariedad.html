@@ -1,1 +1,15 @@
-{% extends 'plantilla.html' %}{% block titulo %}Editar variedad{% endblock %}{% block contenido %}<div class="mb-4"><span class="eyebrow">Administración · Variedades</span><h1 class="page-title">Editar variedad</h1><p class="page-subtitle">{{ variedadEditar.codigo_variedad }}</p></div><form action="{% url 'procesarEdicionVariedad' %}" method="post" class="panel">{% csrf_token %}<input type="hidden" name="codigo_variedad" value="{{ variedadEditar.codigo_variedad }}"><div class="panel-body"><label class="form-label required">Nombre</label><input class="form-control" name="nombre" value="{{ variedadEditar.nombre }}" maxlength="100" required></div><div class="panel-head justify-content-end"><a href="{% url 'inicioVariedad' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary">Guardar cambios</button></div></form>{% endblock %}
+{% extends 'plantilla.html' %}
+{% block titulo %}Editar variedad{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Administración · Variedades</span><h1 class="page-title">Editar variedad</h1><p class="page-subtitle">{{ variedadEditar.codigo_variedad }}</p></div>
+<form action="{% url 'procesarEdicionVariedad' %}" method="post" enctype="multipart/form-data" class="panel">
+    {% csrf_token %}<input type="hidden" name="codigo_variedad" value="{{ variedadEditar.codigo_variedad }}">
+    <div class="panel-body"><div class="row g-4 align-items-end">
+        <div class="col-lg-6"><label class="form-label required" for="nombre">Nombre</label><input class="form-control" id="nombre" name="nombre" value="{{ variedadEditar.nombre }}" maxlength="100" required></div>
+        <div class="col-lg-4"><label class="form-label {% if not variedadEditar.imagen %}required{% endif %}" for="imagen">{% if variedadEditar.imagen %}Cambiar imagen{% else %}Imagen de la variedad{% endif %}</label><input class="form-control" id="imagen" type="file" name="imagen" accept=".jpg,.jpeg,.png,image/jpeg,image/png" {% if not variedadEditar.imagen %}required{% endif %}><div class="help-text mt-2">Solo JPG, JPEG o PNG. Máximo 5 MB.</div></div>
+        <div class="col-lg-2 text-lg-center">{% if variedadEditar.imagen %}<img class="variedad-preview" src="{% url 'imagenVariedad' variedadEditar.codigo_variedad %}" alt="{{ variedadEditar.nombre }}"><div class="help-text mt-2">Imagen actual</div>{% endif %}</div>
+    </div></div>
+    <div class="panel-head justify-content-end"><a href="{% url 'inicioVariedad' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary"><i class="bi bi-floppy me-2"></i>Guardar cambios</button></div>
+</form>
+{% endblock %}
+{% block estilos %}<style>.variedad-preview{width:110px;height:82px;object-fit:cover;border:3px solid #fff;border-radius:13px;box-shadow:0 7px 20px rgba(35,82,49,.18)}</style>{% endblock %}

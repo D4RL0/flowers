@@ -1,1 +1,13 @@
-{% extends 'plantilla.html' %}{% block titulo %}Nueva variedad{% endblock %}{% block contenido %}<div class="mb-4"><span class="eyebrow">Administración · Variedades</span><h1 class="page-title">Registrar variedad</h1></div><form action="{% url 'guardarVariedad' %}" method="post" class="panel">{% csrf_token %}<div class="panel-body"><label class="form-label required">Nombre de la variedad</label><input class="form-control" name="nombre" maxlength="100" required autofocus></div><div class="panel-head justify-content-end"><a href="{% url 'inicioVariedad' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary">Guardar variedad</button></div></form>{% endblock %}
+{% extends 'plantilla.html' %}
+{% block titulo %}Nueva variedad{% endblock %}
+{% block contenido %}
+<div class="mb-4"><span class="eyebrow">Administración · Variedades</span><h1 class="page-title">Registrar variedad</h1><p class="page-subtitle">Añada el nombre y una fotografía que permita identificarla fácilmente.</p></div>
+<form action="{% url 'guardarVariedad' %}" method="post" enctype="multipart/form-data" class="panel">
+    {% csrf_token %}
+    <div class="panel-body"><div class="row g-4">
+        <div class="col-lg-7"><label class="form-label required" for="nombre">Nombre de la variedad</label><input class="form-control" id="nombre" name="nombre" maxlength="100" required autofocus></div>
+        <div class="col-lg-5"><label class="form-label required" for="imagen">Imagen de la variedad</label><input class="form-control" id="imagen" type="file" name="imagen" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required><div class="help-text mt-2"><i class="bi bi-shield-check me-1"></i>Solo JPG, JPEG o PNG. Tamaño máximo: 5 MB.</div></div>
+    </div></div>
+    <div class="panel-head justify-content-end"><a href="{% url 'inicioVariedad' %}" class="btn btn-light">Cancelar</a><button class="btn btn-primary"><i class="bi bi-floppy me-2"></i>Guardar variedad</button></div>
+</form>
+{% endblock %}

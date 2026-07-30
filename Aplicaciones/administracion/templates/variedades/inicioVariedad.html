@@ -1,3 +1,28 @@
-{% extends 'plantilla.html' %}{% block titulo %}Variedades{% endblock %}{% block contenido %}
-<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4"><div><span class="eyebrow">Administración</span><h1 class="page-title">Variedades</h1><p class="page-subtitle">Catálogo de variedades florales manejadas por la empresa.</p></div><a href="{% url 'nuevaVariedad' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Nueva variedad</a></div><div class="panel"><div class="panel-head"><input class="form-control search-box" placeholder="Buscar variedad..." data-table-search="#tablaVariedades"></div><div class="table-responsive"><table class="table table-hover" id="tablaVariedades"><thead><tr><th>Código</th><th>Nombre</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead><tbody>{% for v in variedades %}<tr><td class="fw-semibold">{{ v.codigo_variedad }}</td><td>{{ v.nombre }}</td><td>{% if v.estado %}<span class="badge badge-active">Activa</span>{% else %}<span class="badge badge-inactive">Inactiva</span>{% endif %}</td><td class="text-end"><a class="btn btn-sm btn-soft action-btn" href="{% url 'editarVariedad' v.codigo_variedad %}"><i class="bi bi-pencil"></i></a> <a class="btn btn-sm btn-outline-secondary action-btn" href="{% url 'cambiarEstadoVariedad' v.codigo_variedad %}" data-confirm="¿Cambiar estado de la variedad?"><i class="bi bi-arrow-repeat"></i></a></td></tr>{% empty %}<tr><td colspan="4" class="empty-state">No hay variedades registradas.</td></tr>{% endfor %}</tbody></table></div></div>
+{% extends 'plantilla.html' %}
+{% block titulo %}Variedades{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+    <div><span class="eyebrow">Administración</span><h1 class="page-title">Variedades</h1><p class="page-subtitle">Catálogo visual de las variedades florales manejadas por la empresa.</p></div>
+    <a href="{% url 'nuevaVariedad' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Nueva variedad</a>
+</div>
+<div class="panel">
+    <div class="panel-head"><input class="form-control search-box" placeholder="Buscar variedad..." data-table-search="#tablaVariedades"></div>
+    <div class="table-responsive">
+        <table class="table table-hover" id="tablaVariedades">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Imagen</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+            <tbody>
+            {% for v in variedades %}
+                <tr>
+                    <td class="fw-semibold">{{ v.codigo_variedad }}</td>
+                    <td class="fw-semibold">{{ v.nombre }}</td>
+                    <td>{% if v.imagen %}<a href="{% url 'imagenVariedad' v.codigo_variedad %}" target="_blank" title="Ver imagen de {{ v.nombre }}"><img class="variedad-thumb" src="{% url 'imagenVariedad' v.codigo_variedad %}" alt="{{ v.nombre }}" loading="lazy"></a>{% else %}<span class="variedad-sin-imagen"><i class="bi bi-image"></i> Sin imagen</span>{% endif %}</td>
+                    <td>{% if v.estado %}<span class="badge badge-active">Activa</span>{% else %}<span class="badge badge-inactive">Inactiva</span>{% endif %}</td>
+                    <td class="text-end"><a class="btn btn-sm btn-soft action-btn" href="{% url 'editarVariedad' v.codigo_variedad %}" title="Editar variedad"><i class="bi bi-pencil"></i></a> <a class="btn btn-sm btn-outline-secondary action-btn" href="{% url 'cambiarEstadoVariedad' v.codigo_variedad %}" data-confirm="¿Cambiar estado de la variedad?" title="Cambiar estado"><i class="bi bi-arrow-repeat"></i></a></td>
+                </tr>
+            {% empty %}<tr><td colspan="5" class="empty-state">No hay variedades registradas.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
+{% block estilos %}<style>.variedad-thumb{width:68px;height:52px;display:block;object-fit:cover;border:2px solid #fff;border-radius:10px;box-shadow:0 5px 14px rgba(36,79,49,.16);transition:transform .18s,box-shadow .18s}.variedad-thumb:hover{transform:scale(1.06);box-shadow:0 8px 18px rgba(36,79,49,.22)}.variedad-sin-imagen{display:inline-flex;align-items:center;gap:6px;color:#89948d;font-size:.7rem}</style>{% endblock %}
