@@ -145,6 +145,19 @@ class PermisoPersonal(models.Model):
     def __str__(self):
         return f"Permiso de {self.personal} - {self.get_motivo_display()}"
 
+    @property
+    def descuento_legible(self):
+        if self.hora_salida and self.hora_retorno:
+            minutos_totales = int(self.dias_descontados * Decimal('480'))
+            horas, minutos = divmod(minutos_totales, 60)
+            partes = []
+            if horas:
+                partes.append(f'{horas} {"hora" if horas == 1 else "horas"}')
+            if minutos:
+                partes.append(f'{minutos} min')
+            return ' '.join(partes) or '0 horas'
+        return f'{self.dias_descontados} {"día" if self.dias_descontados == 1 else "días"}'
+
 
 class VacacionPersonal(models.Model):
     personal = models.ForeignKey(Personal, on_delete=models.CASCADE, related_name='vacaciones')

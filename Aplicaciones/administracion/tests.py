@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from tempfile import TemporaryDirectory
 
 from django.core.exceptions import ValidationError
@@ -16,7 +16,7 @@ from FlorLY.security import (
     clear_login_failures, login_is_blocked, register_login_failure,
 )
 from Aplicaciones.administracion.models import (
-    DocumentoPersonal, Finca, Personal, Proveedor, VacacionPersonal, Variedad,
+    DocumentoPersonal, Finca, PermisoPersonal, Personal, Proveedor, VacacionPersonal, Variedad,
 )
 from Aplicaciones.liquidaciones.models import Liquidacion
 
@@ -230,3 +230,76 @@ class FechaDocumentoPersonalTests(TestCase):
         self.assertEqual(documento.fecha_documento, timezone.localdate())
         expediente = self.client.get(reverse('expedientePersonal', args=[self.personal.pk]))
         self.assertNotContains(expediente, 'name="fecha_documento"')
+
+
+class FechasPermisoPersonalTests(TestCase):
+    def setUp(self):
+        usuario = get_user_model().objects.create_superuser(
+            username='admin_permiso_fecha', password='ClavePermiso123!'
+        )
+        finca = Finca.objects.create(
+            codigo_finca='FINPER', nombre='FINCA PERMISOS', ubicacion='CAYAMBE'
+        )
+        self.personal = Personal.objects.create(
+            codigo_personal='PERPER', nombres='MARTA', apellidos='FLORES VEGA',
+            cedula='1710034065', telefono='0999999999', fecha_ingreso=date(2020, 1, 1),
+            area='POSTCOSECHA', finca=finca,
+        )
+        self.client.force_login(usuario)
+
+    def registrar_permiso(self, desde, hasta, salida='', retorno=''):
+        return self.client.post(
+            reverse('guardarPermisoPersonal', args=[self.personal.pk]),
+            {
+                'motivo': 'ASUNTOS_PARTICULARES',
+                'observacion': 'Prueba de permiso',
+                'fecha_desde': desde.isoformat(),
+                'fecha_hasta': hasta.isoformat(),
+                'hora_salida': salida,
+                'hora_retorno': retorno,
+            },
+            follow=True,
+        )
+
+    def test_rechaza_fecha_anterior_a_hoy_desde_el_servidor(self):
+        ayer = timezone.localdate() - timedelta(days=1)
+
+        respuesta = self.registrar_permiso(ayer, timezone.localdate())
+
+        self.assertContains(respuesta, 'La ausencia no puede registrarse en una fecha anterior a hoy')
+        self.assertFalse(PermisoPersonal.objects.exists())
+
+    def test_permiso_de_medio_dia_descuenta_solo_las_horas(self):
+        hoy = timezone.localdate()
+
+        self.registrar_permiso(hoy, hoy, '12:00', '16:00')
+
+        permiso = PermisoPersonal.objects.get()
+        self.assertEqual(permiso.dias_descontados, Decimal('0.50'))
+        self.assertEqual(permiso.descuento_legible, '4 horas')
+
+    def test_salida_al_mediodia_y_retorno_manana_descuenta_medio_dia(self):
+        hoy = timezone.localdate()
+
+        self.registrar_permiso(hoy, hoy + timedelta(days=1), '12:00', '08:00')
+
+        permiso = PermisoPersonal.objects.get()
+        self.assertEqual(permiso.dias_descontados, Decimal('0.50'))
+        self.assertEqual(permiso.descuento_legible, '4 horas')
+
+    def test_permiso_de_dos_horas_se_muestra_en_horas(self):
+        hoy = timezone.localdate()
+
+        respuesta = self.registrar_permiso(hoy, hoy, '11:40', '13:40')
+
+        permiso = PermisoPersonal.objects.get()
+        self.assertEqual(permiso.dias_descontados, Decimal('0.25'))
+        self.assertEqual(permiso.descuento_legible, '2 horas')
+        self.assertContains(respuesta, 'Se descontaron 2 horas de vacaciones')
+
+    def test_formulario_limita_calendario_desde_hoy(self):
+        respuesta = self.client.get(reverse('expedientePersonal', args=[self.personal.pk]))
+
+        self.assertEqual(respuesta.context['fecha_actual'], timezone.localdate().isoformat())
+        self.assertContains(respuesta, "desde.min = hoy")
+        self.assertContains(respuesta, "hasta.min = hoy")

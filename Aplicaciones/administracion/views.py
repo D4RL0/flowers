@@ -647,6 +647,7 @@ def expedientePersonal(request, codigo):
         'vacaciones': persona.vacaciones.all().order_by('-fecha_desde', '-fecha_registro'),
         'documentos': persona.documentos.all().order_by('-fecha_documento', '-fecha_registro'),
         'motivos_permiso': PermisoPersonal.MOTIVOS,
+        'fecha_actual': timezone.localdate().isoformat(),
     })
 
 
@@ -656,6 +657,9 @@ def guardarPermisoPersonal(request, codigo):
     try:
         fecha_desde = datetime.strptime(request.POST['fecha_desde'], '%Y-%m-%d').date()
         fecha_hasta = datetime.strptime(request.POST['fecha_hasta'], '%Y-%m-%d').date()
+        hoy = timezone.localdate()
+        if fecha_desde < hoy or fecha_hasta < hoy:
+            raise ValueError('La ausencia no puede registrarse en una fecha anterior a hoy')
         if fecha_hasta < fecha_desde:
             raise ValueError('La fecha final no puede ser anterior a la inicial')
         hora_salida_texto = request.POST.get('hora_salida', '')
@@ -664,13 +668,34 @@ def guardarPermisoPersonal(request, codigo):
         hora_retorno = datetime.strptime(hora_retorno_texto, '%H:%M').time() if hora_retorno_texto else None
         if bool(hora_salida) != bool(hora_retorno):
             raise ValueError('Debe ingresar tanto la hora de salida como la de retorno')
-        if fecha_desde == fecha_hasta and hora_salida and hora_retorno:
-            minutos = (
-                datetime.combine(fecha_hasta, hora_retorno)
-                - datetime.combine(fecha_desde, hora_salida)
-            ).total_seconds() / 60
-            if minutos <= 0:
-                raise ValueError('La hora de retorno debe ser posterior a la hora de salida')
+        if hora_salida and hora_retorno:
+            inicio_jornada = datetime.strptime('08:00', '%H:%M').time()
+            fin_jornada = datetime.strptime('16:00', '%H:%M').time()
+            if not inicio_jornada <= hora_salida <= fin_jornada:
+                raise ValueError('La hora de salida debe estar entre las 08:00 y las 16:00')
+            if not inicio_jornada <= hora_retorno <= fin_jornada:
+                raise ValueError('La hora de retorno debe estar entre las 08:00 y las 16:00')
+
+            if fecha_desde == fecha_hasta:
+                minutos = (
+                    datetime.combine(fecha_hasta, hora_retorno)
+                    - datetime.combine(fecha_desde, hora_salida)
+                ).total_seconds() / 60
+                if minutos <= 0:
+                    raise ValueError('La hora de retorno debe ser posterior a la hora de salida')
+            else:
+                minutos_primer_dia = (
+                    datetime.combine(fecha_desde, fin_jornada)
+                    - datetime.combine(fecha_desde, hora_salida)
+                ).total_seconds() / 60
+                minutos_ultimo_dia = (
+                    datetime.combine(fecha_hasta, hora_retorno)
+                    - datetime.combine(fecha_hasta, inicio_jornada)
+                ).total_seconds() / 60
+                dias_completos_intermedios = max((fecha_hasta - fecha_desde).days - 1, 0)
+                minutos = minutos_primer_dia + minutos_ultimo_dia + (dias_completos_intermedios * 480)
+                if minutos <= 0:
+                    raise ValueError('El período indicado no contiene horas de ausencia')
             dias_descontados = (Decimal(str(minutos)) / Decimal('480')).quantize(Decimal('0.01'))
         else:
             dias_descontados = Decimal((fecha_hasta - fecha_desde).days + 1)
@@ -680,7 +705,7 @@ def guardarPermisoPersonal(request, codigo):
         messages.error(request, str(error))
         return redirect('expedientePersonal', codigo=persona.pk)
 
-    PermisoPersonal.objects.create(
+    permiso = PermisoPersonal.objects.create(
         personal=persona,
         motivo=request.POST['motivo'],
         observacion=request.POST.get('observacion', '').strip(),
@@ -690,7 +715,7 @@ def guardarPermisoPersonal(request, codigo):
         hora_retorno=hora_retorno,
         dias_descontados=dias_descontados,
     )
-    messages.success(request, f'Permiso registrado. Se descontaron {dias_descontados} días de vacaciones')
+    messages.success(request, f'Permiso registrado. Se descontaron {permiso.descuento_legible} de vacaciones')
     return redirect('expedientePersonal', codigo=persona.pk)
 
 
